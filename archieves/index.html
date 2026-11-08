@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NowLab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Glassmorphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Button Hover */
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="text-white p-6 sm:p-10">
+
+    <!-- Header -->
+    <!--<header class="text-center mb-12">
+        <h1 class="text-4xl font-extrabold mb-3 drop-shadow-lg">✨ Portofolio Preview</h1>
+        <p class="text-white/80 text-base sm:text-lg">Menampilkan koleksi konten interaktif dengan desain modern glassmorphism</p>
+    </header>-->
+
+    <!-- Toggle Dark Mode -->
+    <!--<div class="flex justify-center mb-8">
+        <button id="toggleDarkMode" class="btn-glass px-6 py-2 rounded-full text-white font-semibold shadow-md">
+            🌙 Toggle Mode
+        </button>
+    </div>-->
+
+    <!-- Main Content -->
+    <main class="container mx-auto">
+        <div id="content-grid" class="grid gap-10 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <!-- Konten akan dimuat oleh JavaScript -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-16 text-center text-white/60 text-sm">
+        © 2025 - Koleksi Portofolio Interaktif
+    </footer>
+
+    <script>
+        const contentData = {
+            "AI": [
+                {
+                    link: "https://drive.google.com/file/d/1_GN8Y-4-lPUDWumzTTQCuboHg-y78Yec/view?usp=drive_link",
+                    label: "AI Character Auto Answer"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1Z2MvyNP2HPF1Im3Qj_gpuDIHRMUz620j/view?usp=drive_link",
+                    label: "AI Video Generator"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1HSY86a1iDhOcxXUhUplb0FCP35BPwx6m/view?usp=drive_link",
+                    label: "Voice Call Automation"
+                },
+                {
+                    link: "https://drive.google.com/file/d/16W0I5RZeQRIWOVvJPzhX79TfgMiXmCjt/view?usp=drive_link",
+                    label: "AI Metahuman"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1WhqbI9dxM1ySseDrc0HQCMnPteJPzEg9/view?usp=drive_link",
+                    label: "Metahuman Auto Answer"
+                },
+                {
+                    link: "https://www.tiktok.com/@digitalpetverse",
+                    label: "Tiktok Games Interactive Live Streaming"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1muA9G4GaCviJ7FGHi0Ilxgn0HuTDG6ma/view?usp=drive_link",
+                    label: "n8n Automation (Auto Posting Socmed)"
+                },
+                {
+                    link: "https://drive.google.com/file/d/195oRh3eb5chhsSNCOg4f9PzJl9vWgmfi/view?usp=drive_link",
+                    label: "n8n Automation (WA Autoreply)"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1prdMFfWMo8844sfZXS19cLnT2bpR3fbd/view?usp=drive_link",
+                    label: "n8n Automation (IG Comments)"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1tCu5V0rcZ--yDQZn_6QcO03KoEmPEFhc/view?usp=drive_link",
+                    label: "n8n Automation (Email Auto)"
+                },
+                {
+                    link: "https://game.isobar-live.id/Innovation/?p=25",
+                    label: "AI Website"
+                }
+            ],
+            "Games": [
+                {
+                    link: "https://game.isobar-live.id/Innovation/",
+                    label: "Games Website"
+                }
+            ],
+            "Videos": [
+                {
+                    link: "https://drive.google.com/file/d/1KcabC2-mrJmmZskPt2GCwBr-oMTjkVij/view?usp=drive_link",
+                    label: "AI Video (3D)"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1zbyG1-EahWqn8J8RmrGXlyp-Yb3eq_CV/view?usp=sharing",
+                    label: "AI Video (Horror)"
+                }
+            ],
+            "AR": [
+                {
+                    link: "https://youtu.be/MrMhzijnTRA",
+                    label: "AR (App) YouTube 1"
+                },
+                {
+                    link: "https://youtu.be/31QC0Mi21ro",
+                    label: "AR (App) YouTube 2"
+                },
+                {
+                    link: "https://youtu.be/u4RALBIGmAU",
+                    label: "AR (App) YouTube 3"
+                },
+                {
+                    link: "https://youtu.be/Ijc4VggXUFs",
+                    label: "AR (App) YouTube 4"
+                },
+                {
+                    link: "https://youtu.be/bsNvOzMCeBs",
+                    label: "AR (App) YouTube 5"
+                },
+                {
+                    link: "https://game.isobar-live.id/Innovation/?p=16",
+                    label: "AR Website"
+                },
+                {
+                    link: "https://drive.google.com/file/d/10Q3Kb_KiX50UL_VbfB1UVSal3PrxAoTG/view?usp=drive_link",
+                    label: "AR (IG Filter) Drive 1"
+                },
+                {
+                    link: "https://drive.google.com/file/d/10_3RVtKcHu9movX80mH9ZmJ_Z6zvnpAv/view?usp=drive_link",
+                    label: "AR (IG Filter) Drive 2"
+                },
+                {
+                    link: "https://drive.google.com/file/d/10buKhm4YcLRV75YURsLXSD6NRTlGcFqw/view?usp=drive_link",
+                    label: "AR (IG Filter) Drive 3"
+                },
+                {
+                    link: "http://demo.gemezz.mobi/",
+                    label: "AR (WEB) demo"
+                }
+            ],
+            "AI (WEB)": [
+                {
+                    link: "https://game.isobar-live.id/",
+                    label: "AI (WEB) 1"
+                },
+                {
+                    link: "https://game.isobar-live.id/AI/Indomaret/",
+                    label: "AI (WEB) Indomaret"
+                },
+                {
+                    link: "https://game.isobar-live.id/AI/HondaSR_v2/",
+                    label: "AI (WEB) Honda SR v2"
+                },
+                {
+                    link: "https://game.isobar-live.id/AI/Honda_v4/",
+                    label: "AI (WEB) Honda v4"
+                },
+                {
+                    link: "https://game.isobar-live.id/BAKTI_BCA_2024",
+                    label: "AI (WEB) BAKTI BCA 2024"
+                },
+                {
+                    link: "https://drive.google.com/file/d/16GgN1IhOMD5FvVWHbUzjATGMvr-VbwXm/view?usp=sharing",
+                    label: "AI Drive 6"
+                },
+                {
+                    link: "https://drive.google.com/file/d/11-GSqUOMumJC3yyjgNzHHla9NyGcznFo/view?usp=sharing",
+                    label: "AI Drive 7"
+                },
+                {
+                    link: "https://drive.google.com/file/d/10w_ZftnPF3qa51_7TSA83dV3GNng7mM2/view?usp=sharing",
+                    label: "AI Drive 8"
+                },
+                {
+                    link: "https://www.instagram.com/reel/Co07WQJgoO5/?igshid=YmMyMTA2M2Y%3D",
+                    label: "Instagram Reel"
+                }
+            ],
+            "METAHUMAN (UNREAL)": [
+                {
+                    link: "https://drive.google.com/drive/folders/1UoIJyLdjOQZe5Nvfyw0oHMm0cK31CgWn?usp=sharing",
+                    label: "METAHUMAN (UNREAL) Drive"
+                }
+            ],
+            "VR": [
+                {
+                    link: "https://drive.google.com/file/d/1e3xXf2Ji0DL6bsyaZluvAKCvOQw-kmWW/view?usp=sharing",
+                    label: "VR Drive 1"
+                },
+                {
+                    link: "https://drive.google.com/file/d/16gFgj9Q4BODNnxgntFLnd02g_SOO8B84/view?usp=sharing",
+                    label: "VR Drive 2"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1Rfph2fQXKw1uzYMAR9KyGCQrhCcjHkr0/view?usp=sharing",
+                    label: "VR Drive 3"
+                },
+                {
+                    link: "https://game.isobar-live.id/Innovation/?p=19",
+                    label: "VR Website"
+                }
+            ],
+            "IOT": [
+                {
+                    link: "https://drive.google.com/file/d/10oxAWz2oeYdrXPn3RbsPLd_hzIAAhTM6/view?usp=sharing",
+                    label: "IOT Drive 1"
+                },
+                {
+                    link: "https://drive.google.com/file/d/10ozTdc762tjoHoO56rdJf_2TQJ1qRoSN/view?usp=sharing",
+                    label: "IOT Drive 2"
+                },
+                {
+                    link: "https://drive.google.com/file/d/10u9nzGKGbHuFMDPYFXF_GgWoqlQY5Vyp/view?usp=sharing",
+                    label: "IOT Drive 3"
+                },
+                {
+                    link: "https://drive.google.com/file/d/11B6noG6mT2O8WIrofzvK6GHg6P3P9egO/view?usp=sharing",
+                    label: "IOT Drive 4"
+                },
+                {
+                    link: "https://drive.google.com/file/d/11j08tBynEJmxgQP9EiiIA0XyZ4n6XKyb/view?usp=sharing",
+                    label: "IOT Drive 5"
+                }
+            ]
+        };
+
+        function getYouTubeVideoId(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i;
+            const match = url.match(regex);
+            return (match && match[1]) ? match[1] : null;
+        }
+
+        function createContentElement(item) {
+            const card = document.createElement('div');
+            card.className = "glass p-4 rounded-2xl shadow-lg hover:scale-105 transform transition duration-300 flex flex-col";
+
+            let content;
+            const youTubeId = getYouTubeVideoId(item.link);
+            const isMp4 = item.link.endsWith('.mp4');
+            const isDriveVideoFile = item.link.includes('drive.google.com/file/');
+
+            if (youTubeId) {
+                content = document.createElement('iframe');
+                content.className = "w-full h-48 rounded-lg mb-4";
+                content.src = `https://www.youtube.com/embed/${youTubeId}`;
+                content.setAttribute("frameborder", "0");
+                content.setAttribute("allowfullscreen", "");
+            } else if (isMp4) {
+                content = document.createElement('video');
+                content.className = "w-full h-48 rounded-lg object-cover mb-4";
+                content.src = item.link;
+                content.controls = true;
+            } else if (isDriveVideoFile) {
+                const driveEmbedUrl = item.link.replace('/view?usp=drive_link', '/preview').replace('/view?usp=sharing', '/preview');
+                content = document.createElement('iframe');
+                content.className = "w-full h-48 rounded-lg mb-4";
+                content.src = driveEmbedUrl;
+                content.setAttribute("frameborder", "0");
+                content.setAttribute("allowfullscreen", "");
+            } else {
+                content = document.createElement('div');
+                content.className = "w-full h-48 flex items-center justify-center text-white/70 text-sm italic bg-white/10 rounded-lg mb-4";
+                content.textContent = "Pratinjau tidak tersedia.";
+            }
+
+            const title = document.createElement('h2');
+            title.className = "text-lg font-semibold mb-2";
+            title.textContent = item.label;
+
+            const linkElement = document.createElement('a');
+            linkElement.className = "text-sm text-white/90 hover:text-white underline mt-auto font-medium";
+            linkElement.href = item.link;
+            linkElement.target = "_blank";
+            linkElement.rel = "noopener noreferrer";
+            linkElement.textContent = "Lihat Konten →";
+
+            card.appendChild(content);
+            card.appendChild(title);
+            card.appendChild(linkElement);
+
+            return card;
+        }
+
+        window.onload = function() {
+            const contentGrid = document.getElementById('content-grid');
+            for (const category in contentData) {
+                const categoryTitle = document.createElement('h2');
+                categoryTitle.className = "col-span-full text-2xl font-bold mb-2 drop-shadow-lg";
+                categoryTitle.textContent = category;
+                contentGrid.appendChild(categoryTitle);
+
+                contentData[category].forEach(item => {
+                    const contentElement = createContentElement(item);
+                    contentGrid.appendChild(contentElement);
+                });
+            }
+        };
+
+        document.getElementById('toggleDarkMode').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NowLab - Portofolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Overlay Pop-up Putih Transparan 80% */
+        #video-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85); /* Putih transparan sedikit lebih pekat */
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+
+        .popup-content {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .thumbnail-container {
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .thumbnail-container:hover .play-icon {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        /* Tombol Tutup diperbaiki agar terlihat jelas */
+        .close-btn {
+            background: #f3f4f6;
+            color: #1f2937;
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #ef4444;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Default desktop / landscape */
+        #video-container {
+            aspect-ratio: 16 / 9;
+            max-height: 80vh;
+        }
+
+        /* Mobile portrait */
+        @media (max-width: 768px) and (orientation: portrait) {
+            #video-container {
+                aspect-ratio: 9 / 16;
+                max-height: 90vh;
+            }
+
+            .popup-content {
+                max-width: 95vw;
+            }
+        }
+        .section-title {
+            color: #ffffff;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+
+            /* Outline tipis */
+            -webkit-text-stroke: 1.2px rgba(0, 0, 0, 0.7);
+
+            /* Shadow halus */
+            text-shadow: 0 3px 10px rgba(0,0,0,.6);
+        }
+
+
+    </style>
+</head>
+<body class="text-white p-6 sm:p-10">
+
+    <!-- Main Content -->
+    <main class="container mx-auto">
+        <div id="content-grid" class="grid gap-10 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <!-- Konten akan dimuat oleh JavaScript -->
+        </div>
+    </main>
+
+    <!-- Overlay Pop-up -->
+    <div id="video-overlay">
+        <div class="popup-content p-4 flex flex-col items-center">
+            <!-- Bagian Header Modal untuk Tombol Tutup -->
+            <div class="w-full flex justify-between items-center mb-4">
+                <span id="video-title" class="text-gray-900 font-bold ml-2 truncate">
+                    Video Preview
+                </span>
+                <button onclick="closeOverlay()" class="close-btn">
+                    <span>TUTUP</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+
+            <!-- Container Video -->
+            <div id="video-container" class="w-full rounded-xl overflow-hidden bg-black shadow-inner">
+                <!-- Video/Iframe akan disuntikkan di sini -->
+            </div>
+
+            <!-- Tombol Aktifkan Suara -->
+            <button id="safari-audio-btn" onclick="enableAudio()" class="hidden mt-4 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full shadow-lg transition-all transform hover:scale-105">
+                🔊 AKTIFKAN SUARA
+            </button>
+        </div>
+    </div>
+
+    <footer class="mt-16 text-center text-white/60 text-sm">
+        © 2025 - Koleksi Portofolio Interaktif
+    </footer>
+
+    <script>
+        const contentData = {
+            "AI": [
+                { link: "https://drive.google.com/file/d/1_GN8Y-4-lPUDWumzTTQCuboHg-y78Yec/view?usp=drive_link", label: "AI Character Auto Answer", image: "imagesportos/Ai1.jpg" },
+                { link: "https://drive.google.com/file/d/1_NbHkOnic9tIBtVmLhaCzNv4kE9sJ04P/view?usp=drive_link", label: "Online AI Avatar", image: "imagesportos/Ai1b.jpg" },
+                { link: "https://drive.google.com/file/d/1HSY86a1iDhOcxXUhUplb0FCP35BPwx6m/view?usp=drive_link", label: "Voice Call Automation", image: "imagesportos/Ai3.jpg" },
+                { link: "https://drive.google.com/file/d/1muA9G4GaCviJ7FGHi0Ilxgn0HuTDG6ma/view?usp=drive_link", label: "n8n Automation (Auto Posting Socmed)", image: "imagesportos/Ai6.jpg"  },
+                { link: "https://drive.google.com/file/d/1WhqbI9dxM1ySseDrc0HQCMnPteJPzEg9/view?usp=drive_link", label: "Metahuman Auto Answer", image: "imagesportos/Ai5.jpg" },
+                { link: "https://drive.google.com/file/d/1-jswDEf9WN-fdK1Ecro4iznKeC_wFIKG/view?usp=drive_link", label: "Tiktok Games: Interactive Live Streaming", image: "imagesportos/AiTik02.jpg" },
+                { link: "https://drive.google.com/file/d/195oRh3eb5chhsSNCOg4f9PzJl9vWgmfi/view?usp=drive_link", label: "n8n Automation (WA Autoreply)", image: "imagesportos/Ai7.jpg" },
+                { link: "https://drive.google.com/file/d/1prdMFfWMo8844sfZXS19cLnT2bpR3fbd/view?usp=drive_link", label: "n8n Automation (IG Comments)", image: "imagesportos/Ai8.jpg" },
+                { link: "https://drive.google.com/file/d/1j7m029R368akxWoqaNix-2RMF2ViJ1cC/view?usp=drive_link", label: "AI Photobooth", image: "imagesportos/Ai11.jpg" },
+                { link: "https://drive.google.com/file/d/1tCu5V0rcZ--yDQZn_6QcO03KoEmPEFhc/view?usp=drive_link", label: "n8n Automation (Email Auto)", image: "imagesportos/Ai9.jpg" },
+                { link: "https://drive.google.com/file/d/15lMazvy_DmKzTpKmS62rVG38N7x33Y54/view?usp=drive_link", label: "Unreal Auto Answer", image: "imagesportos/Ai10.jpg" },
+                { link: "https://drive.google.com/file/d/16W0I5RZeQRIWOVvJPzhX79TfgMiXmCjt/view?usp=drive_link", label: "AI Metahuman", image: "imagesportos/Ai4.jpg" },
+                { link: "https://drive.google.com/file/d/1Z2MvyNP2HPF1Im3Qj_gpuDIHRMUz620j/view?usp=drive_link", label: "AI Video Generator", image: "imagesportos/Ai2.jpg" }
+            ],
+            "Games & Interactive": [
+                {
+                    link: "https://drive.google.com/file/d/1o932k4jLJ7r9W_6ru4ex-XxcD6eD1GGB/view?usp=drive_link",
+                    label: "Fanta 2023", image: "imagesportos/GM1.jpg"
+                },
+                { link: "https://drive.google.com/file/d/1ZfAcMtvncjJW2nncUky1u2M_JIJv50WP/view?usp=drive_link", label: "Tiktok Games: Interactive Live Streaming", image: "imagesportos/AiTik01.jpg" },
+                { link: "https://drive.google.com/file/d/1Rj8P8ZJOuvp__oSuwZ5LrQVRgDWrXTXw/view?usp=drive_link", label: "Tiktok Games: Interactive Live Streaming", image: "imagesportos/AiTik03.jpg" },
+                {
+                    link: "https://drive.google.com/file/d/1WP4W8XC8nVdi_u_bNqnATgjkr_m5wSlt/view?usp=drive_link",
+                    label: "Fanta 2023", image: "imagesportos/GM2.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1Q3qVnjsbCtl5m4gUTLekm4dhSinnTlgE/view?usp=sharing",
+                    label: "Vending Machine", image: "imagesportos/IoT2.jpg"
+                },
+                {
+                    link: "http://demo.gemezz.mobi/",
+                    label: "AR (WEB) demo"
+                }
+            ],
+            "AI Videos": [
+                { link: "https://drive.google.com/file/d/1KcabC2-mrJmmZskPt2GCwBr-oMTjkVij/view?usp=drive_link", label: "AI Video (3D)", image: "imagesportos/Vd1.jpg" },
+                { link: "https://drive.google.com/file/d/1Upx2JQYrihvmpTOSi4S42eAXMfpnv6-x/view?usp=sharing", label: "AI Video (Horror)", image: "imagesportos/Vd2.jpg" },
+                { link: "https://drive.google.com/file/d/1zp-_GqZXSYGWdhnN4n41aC14hUvSz1H9/view?usp=sharing", label: "Vilo Gelato", image: "imagesportos/Vd6.jpg" },
+                { link: "https://drive.google.com/file/d/1D68Mj5EhrtUMUKaTUbnUZadfjm0MuvfQ/view?usp=sharing", label: "Dimsum Emoy", image: "imagesportos/Vd3.jpg" },
+                { link: "https://drive.google.com/file/d/1HXIco76AIt7s5qisztDG0um6anDp4lus/view?usp=sharing", label: "Burdo Emoy", image: "imagesportos/Vd4.jpg" },
+                { link: "https://drive.google.com/file/d/1D9lPot0fLeWZKU80CqpwVmWYYNhfPWiQ/view?usp=sharing", label: "Butter baby - Test", image: "imagesportos/Vd8.jpg" },
+                { link: "https://drive.google.com/file/d/1Y-dlBi7d9D9AWA9dAAOoNSgPSOhdy6Ox/view?usp=sharing", label: "Caricature - Test", image: "imagesportos/Vd9.png" },
+                { link: "https://drive.google.com/file/d/1MOMGf_bp8HtQJY8LK0vrilYP2krOQOqy/view?usp=sharing", label: "Budak Corporate", image: "imagesportos/Vd5.jpg" }
+                ,
+                { link: "https://drive.google.com/file/d/1Swb8QHZu2IRIorDLUY9bIjhQh5Z-0vB6/view?usp=sharing", label: "Experia.id", image: "imagesportos/Vd7.jpg" }
+            ],
+            "AR": [
+                { link: "https://youtu.be/MrMhzijnTRA", label: "AR (App) YouTube 1", image: "imagesportos/AR1.jpg" },
+                { link: "https://youtu.be/31QC0Mi21ro", label: "AR (App) YouTube 2", image: "imagesportos/AR2.jpg" },
+                { link: "https://youtu.be/u4RALBIGmAU", label: "AR (App) YouTube 3", image: "imagesportos/AR3.jpg" },
+                { link: "https://youtu.be/Ijc4VggXUFs", label: "AR (App) YouTube 4", image: "imagesportos/AR4.jpg" },
+                { link: "https://youtu.be/bsNvOzMCeBs", label: "AR (App) YouTube 5", image: "imagesportos/AR5.jpg" },
+                { link: "https://drive.google.com/file/d/10Q3Kb_KiX50UL_VbfB1UVSal3PrxAoTG/view?usp=drive_link", label: "AR (IG Filter) Drive 1", image: "imagesportos/AR6.jpg" },
+                { link: "https://drive.google.com/file/d/10_3RVtKcHu9movX80mH9ZmJ_Z6zvnpAv/view?usp=drive_link", label: "AR (IG Filter) Drive 2", image: "imagesportos/AR7.jpg" },
+                { link: "https://drive.google.com/file/d/10buKhm4YcLRV75YURsLXSD6NRTlGcFqw/view?usp=drive_link", label: "AR (IG Filter) Drive 3", image: "imagesportos/AR8.jpg" }
+            ],
+            "AR (WEB)": [
+                {
+                    link: "https://drive.google.com/file/d/16GgN1IhOMD5FvVWHbUzjATGMvr-VbwXm/view?usp=sharing", label: "AI Drive 6", label: "AR 2023", image: "imagesportos/WBAR1.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/11-GSqUOMumJC3yyjgNzHHla9NyGcznFo/view?usp=sharing",
+                    label: "AI Drive 7", image: "imagesportos/WBAR2.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/10w_ZftnPF3qa51_7TSA83dV3GNng7mM2/view?usp=sharing",
+                    label: "AI Drive 8", image: "imagesportos/WBAR3.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1Kq9e03GbjNWyclm4SMztl2LUx4uq4Qvb/view?usp=sharing",
+                    label: "Instagram Reel - 2022", image: "imagesportos/WBAR4.jpg"
+                }
+            ],
+            "METAHUMAN (UNREAL)": [
+                {
+                    link: "https://drive.google.com/file/d/1zruCYsHDTJOUPbCOItDKyXrig1VR2FiZ/view?usp=sharing",
+                    label: "METAHUMAN (UNREAL)", image: "imagesportos/MtHm.jpg"
+                }
+            ],
+            "VR": [
+                {
+                    link: "https://drive.google.com/file/d/1e3xXf2Ji0DL6bsyaZluvAKCvOQw-kmWW/view?usp=sharing",
+                    label: "VR TSel", image: "imagesportos/VR1.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/16gFgj9Q4BODNnxgntFLnd02g_SOO8B84/view?usp=sharing",
+                    label: "VR Demo", image: "imagesportos/VR2.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/1Rfph2fQXKw1uzYMAR9KyGCQrhCcjHkr0/view?usp=sharing",
+                    label: "VR Demo", image: "imagesportos/VR3.jpg"
+                }
+            ],
+            "IOT": [
+                {
+                    link: "https://drive.google.com/file/d/13ben7HAqK_NKnWurimrIjyo4rhIQbLEh/view?usp=sharing",
+                    label: "IOT Plate Number Capturer", image: "imagesportos/IoT7.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/10u9nzGKGbHuFMDPYFXF_GgWoqlQY5Vyp/view?usp=sharing",
+                    label: "IOT Beverage Tap", image: "imagesportos/IoT4.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/11j08tBynEJmxgQP9EiiIA0XyZ4n6XKyb/view?usp=sharing",
+                    label: "IOT VR Glasses", image: "imagesportos/IoT6.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/10ozTdc762tjoHoO56rdJf_2TQJ1qRoSN/view?usp=sharing",
+                    label: "IOT Holo GPT", image: "imagesportos/IoT3.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/10oxAWz2oeYdrXPn3RbsPLd_hzIAAhTM6/view?usp=sharing",
+                    label: "IOT Holo Band", image: "imagesportos/IoT1.jpg"
+                },
+                {
+                    link: "https://drive.google.com/file/d/11B6noG6mT2O8WIrofzvK6GHg6P3P9egO/view?usp=sharing",
+                    label: "IOT Demo", image: "imagesportos/IoT5.jpg"
+                }
+            ]
+        };
+
+        const overlay = document.getElementById('video-overlay');
+        const videoContainer = document.getElementById('video-container');
+        const audioBtn = document.getElementById('safari-audio-btn');
+
+        function getYouTubeVideoId(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i;
+            const match = url.match(regex);
+            return (match && match[1]) ? match[1] : null;
+        }
+
+        function createContentElement(item) {
+          const card = document.createElement('div');
+          card.className = "glass p-4 rounded-2xl shadow-lg hover:scale-105 transform transition duration-300 flex flex-col";
+
+          const thumb = document.createElement('div');
+          thumb.className = "thumbnail-container w-full h-48 rounded-lg mb-4 relative overflow-hidden";
+
+          thumb.innerHTML = `
+            <img 
+              src="${item.image}" 
+              alt="${item.label}"
+              class="w-full h-full object-cover"
+            />
+            <div class="absolute inset-0 bg-gradient-to-tr from-blue-900/30 to-purple-900/30"></div>
+            <div class="play-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24" fill="white">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </div>
+          `;
+
+          thumb.onclick = () => openOverlay(item);
+
+          const title = document.createElement('h2');
+          title.className = "text-lg font-semibold mb-2";
+          title.textContent = item.label;
+
+          card.appendChild(thumb);
+          card.appendChild(title);
+          return card;
+        }
+
+        function openOverlay(item) {
+            videoContainer.innerHTML = '';
+            overlay.style.display = 'flex';
+            audioBtn.classList.add('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            document.getElementById('video-title').textContent = item.label;
+
+            const youTubeId = getYouTubeVideoId(item.link);
+            const isMp4 = item.link.endsWith('.mp4');
+            const isDriveFile = item.link.includes('drive.google.com/file/');
+
+            if (youTubeId) {
+                const iframe = document.createElement('iframe');
+                iframe.className = "w-full h-full";
+                iframe.src = `https://www.youtube.com/embed/${youTubeId}?autoplay=1&mute=0&rel=0`;
+                iframe.setAttribute("allow", "autoplay; encrypted-media");
+                iframe.setAttribute("allowfullscreen", "");
+                videoContainer.appendChild(iframe);
+            } else if (isMp4) {
+                const video = document.createElement('video');
+                video.id = "main-video";
+                video.className = "w-full h-full object-contain";
+                video.src = item.link;
+                video.controls = true;
+                video.autoplay = true;
+                videoContainer.appendChild(video);
+
+                video.play().catch(() => {
+                    audioBtn.classList.remove('hidden');
+                });
+            } else if (isDriveFile) {
+                const driveEmbedUrl = item.link.replace('/view?usp=drive_link', '/preview').replace('/view?usp=sharing', '/preview');
+                const iframe = document.createElement('iframe');
+                iframe.className = "w-full h-full";
+                iframe.src = driveEmbedUrl;
+                iframe.setAttribute("allow", "autoplay");
+                videoContainer.appendChild(iframe);
+            }
+            overlay.style.display = 'flex';
+            adjustVideoAspect();
+
+        }
+
+        function closeOverlay() {
+            overlay.style.display = 'none';
+            videoContainer.innerHTML = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        function enableAudio() {
+            const video = document.getElementById('main-video');
+            if (video) {
+                video.muted = false;
+                video.play();
+                audioBtn.classList.add('hidden');
+            }
+        }
+
+        window.onload = function() {
+            const contentGrid = document.getElementById('content-grid');
+            for (const category in contentData) {
+                const categoryColors = {
+                "Games": "bg-pink-600",
+                "AR": "bg-green-600",
+                "AI": "bg-purple-600",
+                "AI Videos": "bg-blue-600",
+                "VR": "bg-orange-600",
+                "IOT": "bg-teal-600",
+                "METAHUMAN (UNREAL)": "bg-fuchsia-600",
+                "AR (WEB)": "bg-lime-600"
+            };
+
+            const categoryTitle = document.createElement('div');
+            categoryTitle.className = `
+              col-span-full
+              flex items-center
+              mt-14 mb-6
+              rounded-xl
+              bg-black/60
+              backdrop-blur
+              shadow-lg
+            `;
+
+            categoryTitle.innerHTML = `
+              <div class="w-2 h-full rounded-l-xl ${categoryColors[category] || 'bg-gray-500'}"></div>
+              <h2 class="section-title px-5 py-4 text-xl sm:text-2xl">
+                ${category}
+              </h2>
+            `;
+
+            contentGrid.appendChild(categoryTitle);
+
+
+
+                contentData[category].forEach(item => {
+                    const contentElement = createContentElement(item);
+                    contentGrid.appendChild(contentElement);
+                });
+            }
+        };
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeOverlay();
+        });
+    </script>
+    <script>
+function adjustVideoAspect() {
+    const vc = document.getElementById('video-container');
+    if (!vc) return;
+
+    if (window.innerWidth < 768 && window.matchMedia("(orientation: portrait)").matches) {
+        vc.style.aspectRatio = "9 / 16";
+    } else {
+        vc.style.aspectRatio = "16 / 9";
+    }
+}
+
+window.addEventListener("resize", adjustVideoAspect);
+window.addEventListener("orientationchange", adjustVideoAspect);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gondo - Portofolio Kreatif & Teknologi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top right, #3b0764, #030712 60%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px -15px rgba(124, 58, 237, 0.3);
+        }
+
+        /* Overlay Pop-up Putih Transparan */
+        #video-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .popup-content {
+            background: #1e1b4b;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+            margin: 0 auto;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .thumbnail-container {
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .thumbnail-container:hover .play-icon {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .thumbnail-container:hover img {
+            transform: scale(1.05);
+        }
+
+        .thumbnail-container img {
+            transition: transform 0.5s ease;
+        }
+
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.9;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+        }
+
+        /* Tombol Tutup Modern */
+        .close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+            transform: translateY(-2px);
+        }
+        
+        /* Default desktop / landscape */
+        #video-container {
+            aspect-ratio: 16 / 9;
+            max-height: 70vh;
+        }
+
+        /* Mobile portrait */
+        @media (max-width: 768px) and (orientation: portrait) {
+            #video-container {
+                aspect-ratio: 9 / 16;
+                max-height: 80vh;
+            }
+
+            .popup-content {
+                max-width: 95vw;
+            }
+        }
+
+        .section-title {
+            color: #ffffff;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.7);
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col">
+
+    <!-- Header Profil / Hero Section -->
+    <header class="container mx-auto px-6 pt-12 pb-6 max-w-7xl">
+        <div class="glass p-6 sm:p-10 mb-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+            <!-- Background Decorative Blob -->
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-600 rounded-full filter blur-3xl opacity-30"></div>
+            <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-600 rounded-full filter blur-3xl opacity-30"></div>
+
+            <!-- Avatar -->
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-70 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                <div class="relative w-32 h-32 rounded-full overflow-hidden border-4 border-slate-950 bg-slate-800 flex items-center justify-center">
+                    <!-- Gondo Initial / Avatar Placeholder -->
+                    <span class="text-5xl font-black bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">G</span>
+                </div>
+            </div>
+
+            <!-- Bio Details -->
+            <div class="flex-1 text-center md:text-left z-10">
+                <div class="flex flex-col md:flex-row md:items-center gap-3 mb-2">
+                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">Gondo</h1>
+                    <span class="inline-flex self-center items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                        Creative Technologist
+                    </span>
+                </div>
+                <p class="text-gray-300 text-sm sm:text-base max-w-2xl leading-relaxed mb-4">
+                    Menggabungkan teknologi mutakhir dan kreativitas untuk membangun solusi interaktif. Berpengalaman dalam pengembangan <strong>Artificial Intelligence (AI), Game Interaktif, Augmented Reality (AR/VR), Meta-Human</strong>, serta <strong>IoT</strong>.
+                </p>
+                
+                <!-- Social & Contact Quick Badges -->
+                <div class="flex flex-wrap justify-center md:justify-start gap-2 text-xs">
+                    <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white flex items-center gap-2">
+                        <svg class="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        gondo.tech@gmail.com
+                    </span>
+                    <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white flex items-center gap-2">
+                        <svg class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                        Jakarta, Indonesia
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Panel -->
+        <div class="glass p-6 mb-10 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <!-- Search Bar -->
+            <div class="relative w-full md:w-80">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </span>
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    oninput="filterContent()" 
+                    placeholder="Cari portofolio..." 
+                    class="w-full bg-slate-900/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                />
+            </div>
+
+            <!-- Category Quick Scrollable Tabs -->
+            <div class="w-full md:w-auto overflow-x-auto no-scrollbar py-1">
+                <div class="flex gap-2" id="filter-tabs">
+                    <!-- Dinamis dimuat oleh JavaScript -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="container mx-auto px-6 max-w-7xl flex-grow">
+        <div id="content-grid" class="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <!-- Konten akan dimuat oleh JavaScript -->
+        </div>
+
+        <!-- No Results Indicator -->
+        <div id="no-results" class="hidden text-center py-20">
+            <svg class="mx-auto h-16 w-16 text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-xl font-bold text-gray-300 mb-1">Portofolio tidak ditemukan</h3>
+            <p class="text-gray-400 text-sm">Coba cari kata kunci lain atau pilih kategori yang berbeda.</p>
+        </div>
+    </main>
+
+    <!-- Overlay Pop-up Modal -->
+    <div id="video-overlay">
+        <div class="popup-content p-5 flex flex-col items-center">
+            <!-- Bagian Header Modal -->
+            <div class="w-full flex justify-between items-center mb-4 pb-3 border-b border-white/10">
+                <div class="flex items-center gap-2 max-w-[70%]">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
+                    <span id="video-title" class="text-white font-bold truncate text-base sm:text-lg">
+                        Pratinjau Video
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="copyCurrentLink()" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all" title="Salin Tautan">
+                        <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                        </svg>
+                    </button>
+                    <button onclick="closeOverlay()" class="close-btn text-xs sm:text-sm">
+                        <span>TUTUP</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Container Video -->
+            <div id="video-container" class="w-full rounded-2xl overflow-hidden bg-black shadow-2xl">
+                <!-- Video/Iframe disuntikkan di sini -->
+            </div>
+
+            <!-- Notifikasi Penyalinan Link -->
+            <div id="copy-toast" class="hidden mt-3 text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-4 py-2 rounded-full font-medium">
+                Tautan berhasil disalin ke papan klip!
+            </div>
+
+            <!-- Tombol Aktifkan Suara -->
+            <button id="safari-audio-btn" onclick="enableAudio()" class="hidden mt-4 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-full shadow-lg transition-all transform hover:scale-105 flex items-center gap-2">
+                <span>🔊</span> AKTIFKAN SUARA
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-20 py-8 text-center text-white/40 text-sm border-t border-white/5 bg-black/30 backdrop-blur-sm">
+        <div class="container mx-auto px-6 max-w-7xl flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>© 2025 - Koleksi Portofolio Interaktif Gondo</div>
+            <div class="flex gap-4 text-xs">
+                <a href="#" class="hover:text-purple-400 transition">Kembali ke Atas</a>
+                <span>•</span>
+                <span class="text-white/60">Built with Passion & Future Tech</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const contentData = {
+            "AR": [
+                { link: "https://youtu.be/MrMhzijnTRA", label: "AR (App) YouTube 1", image: "imagesportos/AR1.jpg" },
+                { link: "https://youtu.be/31QC0Mi21ro", label: "AR (App) YouTube 2", image: "imagesportos/AR2.jpg" },
+                { link: "https://youtu.be/u4RALBIGmAU", label: "AR (App) YouTube 3", image: "imagesportos/AR3.jpg" },
+                { link: "https://youtu.be/Ijc4VggXUFs", label: "AR (App) YouTube 4", image: "imagesportos/AR4.jpg" },
+                { link: "https://youtu.be/bsNvOzMCeBs", label: "AR (App) YouTube 5", image: "imagesportos/AR5.jpg" },
+                { link: "https://drive.google.com/file/d/10Q3Kb_KiX50UL_VbfB1UVSal3PrxAoTG/view?usp=drive_link", label: "AR (IG Filter) Drive 1", image: "imagesportos/AR6.jpg" },
+                { link: "https://drive.google.com/file/d/10_3RVtKcHu9movX80mH9ZmJ_Z6zvnpAv/view?usp=drive_link", label: "AR (IG Filter) Drive 2", image: "imagesportos/AR7.jpg" },
+                { link: "https://drive.google.com/file/d/10buKhm4YcLRV75YURsLXSD6NRTlGcFqw/view?usp=drive_link", label: "AR (IG Filter) Drive 3", image: "imagesportos/AR8.jpg" }
+            ],
+            "AR (WEB)": [
+                { link: "https://drive.google.com/file/d/16GgN1IhOMD5FvVWHbUzjATGMvr-VbwXm/view?usp=sharing", label: "AR 2023", image: "imagesportos/WBAR1.jpg" },
+                { link: "https://drive.google.com/file/d/11-GSqUOMumJC3yyjgNzHHla9NyGcznFo/view?usp=sharing", label: "AR Web 2023 - Demo 2", image: "imagesportos/WBAR2.jpg" },
+                { link: "https://drive.google.com/file/d/10w_ZftnPF3qa51_7TSA83dV3GNng7mM2/view?usp=sharing", label: "AR Web Integration - Demo 3", image: "imagesportos/WBAR3.jpg" },
+                { link: "https://drive.google.com/file/d/1Kq9e03GbjNWyclm4SMztl2LUx4uq4Qvb/view?usp=sharing", label: "Instagram Reel - 2022", image: "imagesportos/WBAR4.jpg" }
+            ],
+            "VR": [
+                { link: "https://drive.google.com/file/d/1e3xXf2Ji0DL6bsyaZluvAKCvOQw-kmWW/view?usp=sharing", label: "VR TSel", image: "imagesportos/VR1.jpg" },
+                { link: "https://drive.google.com/file/d/16gFgj9Q4BODNnxgntFLnd02g_SOO8B84/view?usp=sharing", label: "VR Demo", image: "imagesportos/VR2.jpg" },
+                { link: "https://drive.google.com/file/d/1Rfph2fQXKw1uzYMAR9KyGCQrhCcjHkr0/view?usp=sharing", label: "VR Demo", image: "imagesportos/VR3.jpg" }
+            ],
+            "Games & Interactive": [
+                { link: "https://drive.google.com/file/d/1o932k4jLJ7r9W_6ru4ex-XxcD6eD1GGB/view?usp=drive_link", label: "Fanta 2023", image: "imagesportos/GM1.jpg" },
+                { link: "https://drive.google.com/file/d/1ZfAcMtvncjJW2nncUky1u2M_JIJv50WP/view?usp=drive_link", label: "Tiktok Games: Interactive Live Streaming", image: "imagesportos/AiTik01.jpg" },
+                { link: "https://drive.google.com/file/d/1Rj8P8ZJOuvp__oSuwZ5LrQVRgDWrXTXw/view?usp=drive_link", label: "Tiktok Games: Interactive Live Streaming", image: "imagesportos/AiTik03.jpg" },
+                { link: "https://drive.google.com/file/d/1WP4W8XC8nVdi_u_bNqnATgjkr_m5wSlt/view?usp=drive_link", label: "Fanta 2023", image: "imagesportos/GM2.jpg" },
+                { link: "https://drive.google.com/file/d/1Q3qVnjsbCtl5m4gUTLekm4dhSinnTlgE/view?usp=sharing", label: "Vending Machine", image: "imagesportos/IoT2.jpg" },
+                { link: "http://demo.gemezz.mobi/", label: "AR (WEB) demo" }
+            ],
+            "IOT": [
+                { link: "https://drive.google.com/file/d/13ben7HAqK_NKnWurimrIjyo4rhIQbLEh/view?usp=sharing", label: "IOT Plate Number Capturer", image: "imagesportos/IoT7.jpg" },
+                { link: "https://drive.google.com/file/d/10u9nzGKGbHuFMDPYFXF_GgWoqlQY5Vyp/view?usp=sharing", label: "IOT Beverage Tap", image: "imagesportos/IoT4.jpg" },
+                { link: "https://drive.google.com/file/d/11j08tBynEJmxgQP9EiiIA0XyZ4n6XKyb/view?usp=sharing", label: "IOT VR Glasses", image: "imagesportos/IoT6.jpg" },
+                { link: "https://drive.google.com/file/d/10ozTdc762tjoHoO56rdJf_2TQJ1qRoSN/view?usp=sharing", label: "IOT Holo GPT", image: "imagesportos/IoT3.jpg" },
+                { link: "https://drive.google.com/file/d/10oxAWz2oeYdrXPn3RbsPLd_hzIAAhTM6/view?usp=sharing", label: "IOT Holo Band", image: "imagesportos/IoT1.jpg" },
+                { link: "https://drive.google.com/file/d/11B6noG6mT2O8WIrofzvK6GHg6P3P9egO/view?usp=sharing", label: "IOT Demo", image: "imagesportos/IoT5.jpg" }
+            ],
+            "AI": [
+                { link: "https://drive.google.com/file/d/1_GN8Y-4-lPUDWumzTTQCuboHg-y78Yec/view?usp=drive_link", label: "AI Character Auto Answer", image: "imagesportos/Ai1.jpg" },
+                { link: "https://drive.google.com/file/d/1_NbHkOnic9tIBtVmLhaCzNv4kE9sJ04P/view?usp=drive_link", label: "Online AI Avatar", image: "imagesportos/Ai1b.jpg" },
+                { link: "https://drive.google.com/file/d/1HSY86a1iDhOcxXUhUplb0FCP35BPwx6m/view?usp=drive_link", label: "Voice Call Automation", image: "imagesportos/Ai3.jpg" },
+                { link: "https://drive.google.com/file/d/1muA9G4GaCviJ7FGHi0Ilxgn0HuTDG6ma/view?usp=drive_link", label: "n8n Automation (Auto Posting Socmed)", image: "imagesportos/Ai6.jpg"  },
+                { link: "https://drive.google.com/file/d/1WhqbI9dxM1ySseDrc0HQCMnPteJPzEg9/view?usp=drive_link", label: "Metahuman Auto Answer", image: "imagesportos/Ai5.jpg" },
+                { link: "https://drive.google.com/file/d/1-jswDEf9WN-fdK1Ecro4iznKeC_wFIKG/view?usp=drive_link", label: "Tiktok Games: Interactive Live Streaming", image: "imagesportos/AiTik02.jpg" },
+                { link: "https://drive.google.com/file/d/195oRh3eb5chhsSNCOg4f9PzJl9vWgmfi/view?usp=drive_link", label: "n8n Automation (WA Autoreply)", image: "imagesportos/Ai7.jpg" },
+                { link: "https://drive.google.com/file/d/1prdMFfWMo8844sfZXS19cLnT2bpR3fbd/view?usp=drive_link", label: "n8n Automation (IG Comments)", image: "imagesportos/Ai8.jpg" },
+                { link: "https://drive.google.com/file/d/1j7m029R368akxWoqaNix-2RMF2ViJ1cC/view?usp=drive_link", label: "AI Photobooth", image: "imagesportos/Ai11.jpg" },
+                { link: "https://drive.google.com/file/d/1tCu5V0rcZ--yDQZn_6QcO03KoEmPEFhc/view?usp=drive_link", label: "n8n Automation (Email Auto)", image: "imagesportos/Ai9.jpg" },
+                { link: "https://drive.google.com/file/d/15lMazvy_DmKzTpKmS62rVG38N7x33Y54/view?usp=drive_link", label: "Unreal Auto Answer", image: "imagesportos/Ai10.jpg" },
+                { link: "https://drive.google.com/file/d/16W0I5RZeQRIWOVvJPzhX79TfgMiXmCjt/view?usp=drive_link", label: "AI Metahuman", image: "imagesportos/Ai4.jpg" },
+                { link: "https://drive.google.com/file/d/1Z2MvyNP2HPF1Im3Qj_gpuDIHRMUz620j/view?usp=drive_link", label: "AI Video Generator", image: "imagesportos/Ai2.jpg" }
+            ],
+            "AI Videos": [
+                { link: "https://drive.google.com/file/d/1KcabC2-mrJmmZskPt2GCwBr-oMTjkVij/view?usp=drive_link", label: "AI Video (3D)", image: "imagesportos/Vd1.jpg" },
+                { link: "https://drive.google.com/file/d/1Upx2JQYrihvmpTOSi4S42eAXMfpnv6-x/view?usp=sharing", label: "AI Video (Horror)", image: "imagesportos/Vd2.jpg" },
+                { link: "https://drive.google.com/file/d/1zp-_GqZXSYGWdhnN4n41aC14hUvSz1H9/view?usp=sharing", label: "Vilo Gelato", image: "imagesportos/Vd6.jpg" },
+                { link: "https://drive.google.com/file/d/1D68Mj5EhrtUMUKaTUbnUZadfjm0MuvfQ/view?usp=sharing", label: "Dimsum Emoy", image: "imagesportos/Vd3.jpg" },
+                { link: "https://drive.google.com/file/d/1HXIco76AIt7s5qisztDG0um6anDp4lus/view?usp=sharing", label: "Burdo Emoy", image: "imagesportos/Vd4.jpg" },
+                { link: "https://drive.google.com/file/d/1D9lPot0fLeWZKU80CqpwVmWYYNhfPWiQ/view?usp=sharing", label: "Butter baby - Test", image: "imagesportos/Vd8.jpg" },
+                { link: "https://drive.google.com/file/d/1Y-dlBi7d9D9AWA9dAAOoNSgPSOhdy6Ox/view?usp=sharing", label: "Caricature - Test", image: "imagesportos/Vd9.png" },
+                { link: "https://drive.google.com/file/d/1MOMGf_bp8HtQJY8LK0vrilYP2krOQOqy/view?usp=sharing", label: "Budak Corporate", image: "imagesportos/Vd5.jpg" },
+                { link: "https://drive.google.com/file/d/1Swb8QHZu2IRIorDLUY9bIjhQh5Z-0vB6/view?usp=sharing", label: "Experia.id", image: "imagesportos/Vd7.jpg" }
+            ],
+            "METAHUMAN (UNREAL)": [
+                { link: "https://drive.google.com/file/d/1zruCYsHDTJOUPbCOItDKyXrig1VR2FiZ/view?usp=sharing", label: "METAHUMAN (UNREAL)", image: "imagesportos/MtHm.jpg" }
+            ]
+        };
+
+        const categoryColors = {
+            "Games & Interactive": "bg-pink-600",
+            "AR": "bg-green-600",
+            "AI": "bg-purple-600",
+            "AI Videos": "bg-blue-600",
+            "VR": "bg-orange-600",
+            "IOT": "bg-teal-600",
+            "METAHUMAN (UNREAL)": "bg-fuchsia-600",
+            "AR (WEB)": "bg-lime-600"
+        };
+
+        // Kategori cadangan untuk placeholder gambar dinamis (jika file lokal tidak ada)
+        const placeholderImages = {
+            "AI": "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=600&q=80",
+            "Games & Interactive": "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80",
+            "AI Videos": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80",
+            "AR": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=600&q=80",
+            "AR (WEB)": "https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?auto=format&fit=crop&w=600&q=80",
+            "METAHUMAN (UNREAL)": "https://images.unsplash.com/photo-1622737133809-d95047b9e673?auto=format&fit=crop&w=600&q=80",
+            "VR": "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?auto=format&fit=crop&w=600&q=80",
+            "IOT": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80"
+        };
+
+        const overlay = document.getElementById('video-overlay');
+        const videoContainer = document.getElementById('video-container');
+        const audioBtn = document.getElementById('safari-audio-btn');
+        let currentActiveCategory = "Semua";
+        let activeVideoUrl = "";
+
+        function getYouTubeVideoId(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i;
+            const match = url.match(regex);
+            return (match && match[1]) ? match[1] : null;
+        }
+
+        // Generate UI Filter Kategori
+        function renderFilterTabs() {
+            const filterTabsContainer = document.getElementById('filter-tabs');
+            filterTabsContainer.innerHTML = '';
+
+            // Tab "Semua"
+            const allTab = document.createElement('button');
+            allTab.textContent = "Semua";
+            allTab.className = `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-300 whitespace-nowrap ${currentActiveCategory === "Semua" ? "bg-purple-600 text-white shadow-md shadow-purple-500/20" : "bg-white/5 text-gray-300 hover:bg-white/10"}`;
+            allTab.onclick = () => setCategoryFilter("Semua");
+            filterTabsContainer.appendChild(allTab);
+
+            // Tab kategori lainnya
+            for (const category in contentData) {
+                const tab = document.createElement('button');
+                tab.textContent = category;
+                tab.className = `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-300 whitespace-nowrap ${currentActiveCategory === category ? "bg-purple-600 text-white shadow-md shadow-purple-500/20" : "bg-white/5 text-gray-300 hover:bg-white/10"}`;
+                tab.onclick = () => setCategoryFilter(category);
+                filterTabsContainer.appendChild(tab);
+            }
+        }
+
+        function setCategoryFilter(category) {
+            currentActiveCategory = category;
+            renderFilterTabs();
+            filterContent();
+        }
+
+        // Filter Grid secara Instan berdasarkan Pencarian & Tab Kategori
+        function filterContent() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            const contentGrid = document.getElementById('content-grid');
+            contentGrid.innerHTML = '';
+
+            let hasMatches = false;
+
+            for (const category in contentData) {
+                // Periksa apakah kategori cocok dengan filter kategori saat ini
+                if (currentActiveCategory !== "Semua" && currentActiveCategory !== category) {
+                    continue;
+                }
+
+                // Filter item dalam kategori yang cocok dengan pencarian
+                const filteredItems = contentData[category].filter(item => {
+                    return item.label.toLowerCase().includes(query) || category.toLowerCase().includes(query);
+                });
+
+                if (filteredItems.length > 0) {
+                    hasMatches = true;
+
+                    // Buat Header Kategori
+                    const categoryTitle = document.createElement('div');
+                    categoryTitle.className = `col-span-full flex items-center mt-8 mb-4 rounded-xl bg-black/40 backdrop-blur shadow-md overflow-hidden border border-white/5`;
+                    categoryTitle.innerHTML = `
+                      <div class="w-2.5 self-stretch ${categoryColors[category] || 'bg-gray-500'}"></div>
+                      <h2 class="section-title px-5 py-3.5 text-lg sm:text-xl">
+                        ${category}
+                      </h2>
+                    `;
+                    contentGrid.appendChild(categoryTitle);
+
+                    // Buat Elemen Kartu
+                    filteredItems.forEach(item => {
+                        const card = createContentElement(item, category);
+                        contentGrid.appendChild(card);
+                    });
+                }
+            }
+
+            // Atur tampilan pesan "Tidak Ditemukan"
+            const noResults = document.getElementById('no-results');
+            if (hasMatches) {
+                noResults.classList.add('hidden');
+            } else {
+                noResults.classList.remove('hidden');
+            }
+        }
+
+        function createContentElement(item, category) {
+          const card = document.createElement('div');
+          card.className = "glass p-4 flex flex-col justify-between h-full";
+
+          const thumb = document.createElement('div');
+          thumb.className = "thumbnail-container w-full h-48 rounded-xl mb-4 relative overflow-hidden bg-slate-950";
+
+          // Placeholder jika gambar utama lokal tidak ditemukan
+          const fallbackImg = placeholderImages[category] || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80";
+
+          thumb.innerHTML = `
+            <img 
+              src="${item.image || ''}" 
+              alt="${item.label}"
+              class="w-full h-full object-cover"
+              onerror="this.onerror=null; this.src='${fallbackImg}';"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            <div class="play-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="white">
+                <circle cx="12" cy="12" r="10" fill="rgba(139, 92, 246, 0.8)"></circle>
+                <polygon points="10 8 16 12 10 16 10 8" fill="white"></polygon>
+              </svg>
+            </div>
+          `;
+
+          thumb.onclick = () => openOverlay(item);
+
+          const title = document.createElement('h3');
+          title.className = "text-base font-semibold text-white/90 line-clamp-2 px-1 mb-2";
+          title.textContent = item.label;
+
+          // Badges / Tags Category di bawah kartu
+          const bottomArea = document.createElement('div');
+          bottomArea.className = "flex items-center justify-between mt-auto pt-3 border-t border-white/5 text-xs text-gray-400";
+          bottomArea.innerHTML = `
+             <span class="inline-block px-2.5 py-1 rounded-md bg-white/5 border border-white/5">${category}</span>
+             <span class="hover:text-purple-400 transition cursor-pointer flex items-center gap-1" onclick="openOverlay(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                Tonton ➜
+             </span>
+          `;
+
+          card.appendChild(thumb);
+          card.appendChild(title);
+          card.appendChild(bottomArea);
+          return card;
+        }
+
+        function openOverlay(item) {
+            videoContainer.innerHTML = '';
+            overlay.style.display = 'flex';
+            audioBtn.classList.add('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            document.getElementById('video-title').textContent = item.label;
+            activeVideoUrl = item.link;
+
+            const youTubeId = getYouTubeVideoId(item.link);
+            const isMp4 = item.link.endsWith('.mp4');
+            const isDriveFile = item.link.includes('drive.google.com/file/');
+
+            if (youTubeId) {
+                const iframe = document.createElement('iframe');
+                iframe.className = "w-full h-full";
+                iframe.src = `https://www.youtube.com/embed/${youTubeId}?autoplay=1&mute=0&rel=0`;
+                iframe.setAttribute("allow", "autoplay; encrypted-media");
+                iframe.setAttribute("allowfullscreen", "");
+                videoContainer.appendChild(iframe);
+            } else if (isMp4) {
+                const video = document.createElement('video');
+                video.id = "main-video";
+                video.className = "w-full h-full object-contain";
+                video.src = item.link;
+                video.controls = true;
+                video.autoplay = true;
+                videoContainer.appendChild(video);
+
+                video.play().catch(() => {
+                    audioBtn.classList.remove('hidden');
+                });
+            } else if (isDriveFile) {
+                const driveEmbedUrl = item.link.replace('/view?usp=drive_link', '/preview').replace('/view?usp=sharing', '/preview');
+                const iframe = document.createElement('iframe');
+                iframe.className = "w-full h-full";
+                iframe.src = driveEmbedUrl;
+                iframe.setAttribute("allow", "autoplay");
+                videoContainer.appendChild(iframe);
+            } else {
+                // Tautan luar umum
+                const iframe = document.createElement('iframe');
+                iframe.className = "w-full h-full";
+                iframe.src = item.link;
+                videoContainer.appendChild(iframe);
+            }
+            adjustVideoAspect();
+        }
+
+        function closeOverlay() {
+            overlay.style.display = 'none';
+            videoContainer.innerHTML = '';
+            document.body.style.overflow = 'auto';
+            document.getElementById('copy-toast').classList.add('hidden');
+        }
+
+        function enableAudio() {
+            const video = document.getElementById('main-video');
+            if (video) {
+                video.muted = false;
+                video.play();
+                audioBtn.classList.add('hidden');
+            }
+        }
+
+        // Salin Tautan Karya
+        function copyCurrentLink() {
+            if (!activeVideoUrl) return;
+            
+            const tempInput = document.createElement('input');
+            tempInput.value = activeVideoUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const toast = document.getElementById('copy-toast');
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        window.onload = function() {
+            renderFilterTabs();
+            filterContent();
+        };
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeOverlay();
+        });
+
+        function adjustVideoAspect() {
+            const vc = document.getElementById('video-container');
+            if (!vc) return;
+
+            if (window.innerWidth < 768 && window.matchMedia("(orientation: portrait)").matches) {
+                vc.style.aspectRatio = "9 / 16";
+            } else {
+                vc.style.aspectRatio = "16 / 9";
+            }
+        }
+
+        window.addEventListener("resize", adjustVideoAspect);
+        window.addEventListener("orientationchange", adjustVideoAspect);
+    </script>
+</body>
+</html>
