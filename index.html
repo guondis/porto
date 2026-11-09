@@ -2,229 +2,463 @@
 <html lang="id" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NowLab - Portofolio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NowLab - Creative Technologist & AI Portfolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class'
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0a0c10',
+                            card: '#12161f',
+                            border: '#212631',
+                            hover: '#1b202c'
+                        }
+                    },
+                    keyframes: {
+                        shimmer: {
+                            '100%': { transform: 'translateX(100%)' }
+                        }
+                    },
+                    animation: {
+                        shimmer: 'shimmer 1.5s infinite'
+                    }
+                }
+            }
         }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0a0c10;
+            color: #e2e8f0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        .glass {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .ambient-glow {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 1200px;
+            height: 380px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.14) 0%, rgba(147, 51, 234, 0.06) 40%, rgba(10, 12, 16, 0) 70%);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        /* Overlay Pop-up Putih Transparan 80% */
-        #video-overlay {
+        .card-shadow {
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* backdrop-filter dihapus - menyebabkan iOS touch event bug pada iframe */
+        .modal-blur {
+            background-color: rgba(0, 0, 0, 0.88);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* shimmer hanya warna, tanpa ::after transform agar tidak ada stacking context baru */
+        .shimmer-effect {
+            background: linear-gradient(135deg, #0d1117 0%, #161b27 50%, #0d1117 100%);
+            background-size: 200% 200%;
+            animation: shimmerBg 2s ease infinite;
+        }
+
+        @keyframes shimmerBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Portrait mobile: JANGAN pakai transform/scale pada iframe Google Drive.
+           transform pada iframe cross-origin membuat pemetaan koordinat sentuh meleset di browser mobile
+           (tombol play terlihat tapi tap-nya tidak mengenai tombol / "tidak bisa diklik").
+           Cukup atur ukuran box; ukuran video yang tampil tetap sama. */
+        @media (max-width: 768px) and (orientation: portrait) {
+            #modal-video-wrapper {
+                aspect-ratio: auto !important;
+                height: 54vh !important;
+                min-height: 360px !important;
+                max-height: 62vh !important;
+            }
+            .drive-embed-iframe {
+                width: 100% !important;
+                height: 100% !important;
+                transform: none !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                border: none !important;
+            }
+        }
+
+        /* Landscape mobile: box video dipaksa 16:9 dan lebarnya DIHITUNG dari tinggi (width:auto).
+           Kalau lebarnya dipaksa 100% (class w-full), aspect-ratio diabaikan sehingga box jadi ~2.7:1
+           padahal player Google Drive tetap menggambar control bar / progress bar selebar box
+           -> progress bar melebar dan menutupi video. Dengan width:auto, chrome player menempel ke video. */
+        @media (orientation: landscape) and (max-height: 520px) {
+            #modal-video-wrapper {
+                aspect-ratio: 16/9 !important;
+                width: auto !important;
+                height: 75vh !important;
+                max-height: 75vh !important;
+                max-width: 100% !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+            .drive-embed-iframe {
+                width: 100% !important;
+                height: 100% !important;
+                transform: none !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                border: none !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .drive-embed-iframe {
+                width: 100% !important;
+                height: 100% !important;
+                transform: none !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                border: none !important;
+            }
+        }
+    /* Petunjuk visual: player Google Drive tidak bisa diputar dari luar (cross-origin),
+           jadi saat tombol "PUTAR VIDEO SEKARANG" ditekan, sorot area player agar user tahu
+           harus menekan tombol play milik player itu sendiri. */
+        @keyframes tapHintPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+            50% { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.9); }
+        }
+        #modal-video-wrapper.tap-hint {
+            animation: tapHintPulse 1s ease-in-out 2;
+        }
+    /* =====================================================================
+           Player native untuk video Google Drive (streaming via drive-proxy.php).
+           Control bar dibuat sendiri dan diletakkan di BAWAH video (bukan overlay),
+           jadi progress bar tidak akan pernah menutupi gambar.
+           ===================================================================== */
+        .dp-shell {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+        .dp-stage {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            background: #000;
+        }
+        .dp-stage video {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.85); /* Putih transparan sedikit lebih pekat */
-            backdrop-filter: blur(12px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            object-fit: contain;
+            background: #000;
+            display: block;
         }
-
-        .popup-content {
-            background: #ffffff;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            width: 100%;
-            max-width: 900px;
-            position: relative;
-        }
-
-        .thumbnail-container {
-            cursor: pointer;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .thumbnail-container:hover .play-icon {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        .play-icon {
+        .dp-bigplay {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            opacity: 0.8;
-            transition: all 0.3s ease;
+            width: 76px;
+            height: 76px;
+            border-radius: 9999px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(37, 99, 235, 0.92);
+            color: #fff;
+            box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.8);
+            cursor: pointer;
+            z-index: 5;
+            transition: opacity 0.2s ease, transform 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
-
-        /* Tombol di Header Modal */
-        .btn-action {
-            padding: 8px 16px;
-            border-radius: 99px;
-            font-weight: 700;
+        .dp-bigplay:active { transform: translate(-50%, -50%) scale(0.94); }
+        .dp-shell.is-playing .dp-bigplay { opacity: 0; pointer-events: none; }
+        .dp-bar {
+            flex: 0 0 auto;
             display: flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s;
-            font-size: 0.875rem;
+            padding: 6px 8px;
+            background: #0d1117;
+            border-top: 1px solid #212631;
         }
-
-        .close-btn {
-            background: #f3f4f6;
-            color: #1f2937;
+        .dp-btn {
+            flex: 0 0 auto;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: #e2e8f0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
-
-        .close-btn:hover {
-            background: #ef4444;
-            color: white;
-            transform: translateY(-2px);
+        .dp-btn:hover { background: #1b202c; }
+        .dp-seek {
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 22px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+            touch-action: manipulation;
         }
-
-        .source-btn {
-            background: #2563eb;
-            color: white;
-        }
-
-        .source-btn:hover {
-            background: #1d4ed8;
-            transform: translateY(-2px);
+        .dp-time {
+            flex: 0 0 auto;
+            font-variant-numeric: tabular-nums;
+            font-size: 11px;
+            color: #94a3b8;
+            white-space: nowrap;
         }
     </style>
 </head>
-<body class="text-white p-6 sm:p-10">
+<body class="relative antialiased selection:bg-blue-500 selection:text-white">
 
-    <!-- Main Content -->
-    <main class="container mx-auto">
-        <div id="content-grid" class="grid gap-10 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <!-- Konten akan dimuat oleh JavaScript -->
+    <div class="ambient-glow"></div>
+
+    <!-- Header Section -->
+    <header class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 pt-8 pb-6">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-dark-border pb-6 sm:pb-8">
+            <div class="max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-3">
+                    <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                    Creative Technologist Portfolio
+                </div>
+                <h1 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                    NowLab <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Interactive Works</span>
+                </h1>
+                <p class="text-gray-400 text-xs sm:text-base mt-2 sm:mt-3 leading-relaxed">
+                    Pengembangan sistem interaktif end-to-end: AI System, Interactive Streaming Games, AR/VR Immersive, dan Smart Hardware IoT.
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div class="relative w-full sm:min-w-[240px]">
+                    <input type="text" id="search-input" oninput="handleSearch()" placeholder="Cari karya (misal: AI, TikTok)..." class="w-full bg-dark-card border border-dark-border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition">
+                    <svg class="w-4 h-4 text-gray-500 absolute right-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <div class="flex items-center justify-center bg-dark-card border border-dark-border px-4 py-2.5 rounded-xl text-xs">
+                    <span class="text-gray-400 mr-2">Total Project:</span>
+                    <span id="total-count" class="font-bold text-blue-400">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="filter-bar" class="flex items-center gap-2 mt-6 sm:mt-8 overflow-x-auto pb-2 no-scrollbar"></div>
+    </header>
+
+    <!-- Main Content Section -->
+    <main class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 my-4 sm:my-6 flex-grow">
+        <div id="content-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 min-h-[380px]"></div>
+        
+        <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-center">
+            <svg class="w-16 h-16 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <h3 class="text-lg font-semibold text-gray-300">Karya tidak ditemukan</h3>
+            <p class="text-sm text-gray-500 mt-1">Coba kata kunci lain atau pilih kategori Semua.</p>
+        </div>
+
+        <div id="pagination-container" class="flex flex-col sm:flex-row items-center justify-between border-t border-dark-border mt-8 sm:mt-10 pt-6 gap-4">
+            <span id="pagination-info" class="text-xs text-gray-400 font-medium">Menampilkan 1-8 karya</span>
+            <div id="pagination-buttons" class="flex items-center gap-1.5 flex-wrap justify-center"></div>
         </div>
     </main>
 
-    <!-- Overlay Pop-up -->
-    <div id="video-overlay">
-        <div class="popup-content p-4 flex flex-col items-center">
-            <!-- Bagian Header Modal -->
-            <div class="w-full flex justify-between items-center mb-4 px-2">
-                <span id="popup-title" class="text-gray-900 font-bold truncate pr-4">Video Preview</span>
-                <div class="flex gap-2">
+    <!-- Modal Video Overlay -->
+    <div id="video-overlay" onclick="handleOverlayClick(event)" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/90">
+        <div class="bg-dark-card border border-dark-border rounded-2xl max-w-4xl w-full p-3 sm:p-5 shadow-2xl relative flex flex-col gap-2.5 sm:gap-3 z-[101] max-h-[96vh] overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-2 border-b border-dark-border gap-2">
+                <div class="pr-2 overflow-hidden">
+                    <span id="popup-category" class="text-[9px] sm:text-[10px] font-bold text-blue-400 uppercase tracking-widest block truncate">CATEGORY</span>
+                    <h2 id="popup-title" class="text-xs sm:text-base font-bold text-white truncate">Video Preview</h2>
+                </div>
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                    <!-- Toggle Ringkasan Button -->
+                    <button id="toggle-summary-btn" onclick="toggleSummary()" class="px-2.5 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 font-semibold text-[11px] sm:text-xs rounded-xl transition flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span id="toggle-summary-text">Ringkasan</span>
+                    </button>
                     <!-- Tombol Buka Sumber -->
-                    <a id="source-link" href="#" target="_blank" class="btn-action source-btn">
+                    <a id="source-link" href="#" target="_blank" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] sm:text-xs rounded-xl transition flex items-center gap-1 shadow-md">
                         <span>SUMBER</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     </a>
                     <!-- Tombol Tutup -->
-                    <button onclick="closeOverlay()" class="btn-action close-btn">
+                    <button onclick="closeOverlay()" class="px-2.5 py-1.5 bg-dark-hover hover:bg-red-600 text-gray-300 hover:text-white font-semibold text-[11px] sm:text-xs rounded-xl transition flex items-center gap-1 border border-dark-border">
                         <span>TUTUP</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
 
-            <!-- Container Video -->
-            <div id="video-container" class="w-full aspect-video rounded-xl overflow-hidden bg-black shadow-inner">
-                <!-- Video/Iframe akan disuntikkan di sini -->
+            <!-- Video Player & Overlay Area -->
+            <div id="modal-video-wrapper" class="relative w-full rounded-xl bg-black border border-dark-border shadow-inner overflow-hidden flex items-center justify-center" style="aspect-ratio: 16/9; max-height: 72vh;">
+                <!-- Loader -->
+                <div id="video-loader" class="absolute inset-0 flex flex-col items-center justify-center shimmer-effect z-10 pointer-events-none">
+                    <div class="relative flex items-center justify-center mb-2 sm:mb-3">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+                    </div>
+                    <span class="text-[11px] sm:text-xs font-medium text-gray-400 tracking-wide">Memuat Video Preview...</span>
+                </div>
+
+                <!-- Video / Iframe Container -->
+                <div id="video-container" class="absolute inset-0 z-10 w-full h-full"></div>
+
+                <!-- Ringkasan Overlay Di Atas Video -->
+                <div id="summary-overlay" class="absolute inset-0 z-30 flex flex-col justify-between p-3.5 sm:p-5 bg-dark-card/94 backdrop-blur-md transition-all duration-300 overflow-y-auto">
+                    <div class="space-y-2 sm:space-y-3">
+                        <div class="flex items-center justify-between border-b border-dark-border pb-2">
+                            <span class="text-blue-400 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+                                <span>📋</span> Ringkasan Kebutuhan Proyek
+                            </span>
+                            <button onclick="hideSummary()" class="text-gray-400 hover:text-white text-xs px-2.5 py-1 rounded-lg bg-dark-hover border border-dark-border transition">
+                                Sembunyikan ✕
+                            </button>
+                        </div>
+
+                        <div>
+                            <span class="text-gray-400 font-semibold block mb-0.5 uppercase text-[9px] sm:text-[10px] tracking-wider">🎯 Kebutuhan (Use Case)</span>
+                            <p id="modal-desc" class="text-gray-200 leading-relaxed text-[11px] sm:text-xs">Sistem interaktif dirancang untuk aktivasi brand dan automasi operasional secara real-time.</p>
+                        </div>
+                        
+                        <div class="border-t border-dark-border pt-2">
+                            <span class="text-gray-400 font-semibold block mb-1 uppercase text-[9px] sm:text-[10px] tracking-wider">🛠️ Teknologi & Stack Utama</span>
+                            <div id="modal-tags" class="flex flex-wrap gap-1.5 mt-1"></div>
+                        </div>
+
+                        <div class="border-t border-dark-border pt-2">
+                            <span class="text-gray-400 font-semibold block mb-0.5 uppercase text-[9px] sm:text-[10px] tracking-wider">💡 Nilai Bisnis / Impact</span>
+                            <p id="modal-impact" class="text-gray-300 leading-relaxed text-[11px] sm:text-xs">Meningkatkan engagement penonton dan memangkas proses manual secara instan.</p>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Putar Video di dalam Overlay -->
+                    <div class="pt-3 border-t border-dark-border flex items-center justify-center">
+                        <button id="summary-play-btn" onclick="startPlayVideo()" class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-600/30 transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <span>PUTAR VIDEO SEKARANG</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Tombol Aktifkan Suara -->
-            <button id="safari-audio-btn" onclick="enableAudio()" class="hidden mt-4 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full shadow-lg transition-all transform hover:scale-105">
-                🔊 AKTIFKAN SUARA
-            </button>
         </div>
     </div>
 
-    <footer class="mt-16 text-center text-white/60 text-sm">
-        © 2025 - Koleksi Portofolio Interaktif
+    <footer class="relative z-10 border-t border-dark-border mt-12 sm:mt-16 py-6 sm:py-8 text-center text-xs text-gray-500">
+        <p>© 2026 NowLab Portfolio — Creative Technologist & AI Interactive Media</p>
     </footer>
 
     <script>
         const contentData = {
-            "AI": [
-                { link: "https://drive.google.com/file/d/1_GN8Y-4-lPUDWumzTTQCuboHg-y78Yec/view?usp=drive_link", label: "AI Character Auto Answer", image: "imagesportos/Ai1.jpg" },
-                { link: "https://drive.google.com/file/d/1Z2MvyNP2HPF1Im3Qj_gpuDIHRMUz620j/view?usp=drive_link", label: "AI Video Generator", image: "imagesportos/Ai2.jpg" },
-                { link: "https://drive.google.com/file/d/1HSY86a1iDhOcxXUhUplb0FCP35BPwx6m/view?usp=drive_link", label: "Voice Call Automation", image: "imagesportos/Ai3.jpg" },
-                { link: "https://drive.google.com/file/d/16W0I5RZeQRIWOVvJPzhX79TfgMiXmCjt/view?usp=drive_link", label: "AI Metahuman", image: "imagesportos/Ai4.jpg" },
-                { link: "https://drive.google.com/file/d/1WhqbI9dxM1ySseDrc0HQCMnPteJPzEg9/view?usp=drive_link", label: "Metahuman Auto Answer", image: "imagesportos/Ai5.jpg" },
-                { link: "https://drive.google.com/file/d/1-jswDEf9WN-fdK1Ecro4iznKeC_wFIKG/view?usp=drive_link", label: "Tiktok Games Interactive Live Streaming", image: "imagesportos/AiTik02.jpg" },
-                { link: "https://drive.google.com/file/d/1muA9G4GaCviJ7FGHi0Ilxgn0HuTDG6ma/view?usp=drive_link", label: "n8n Automation (Auto Posting Socmed)", image: "imagesportos/Ai6.jpg"  },
-                { link: "https://drive.google.com/file/d/195oRh3eb5chhsSNCOg4f9PzJl9vWgmfi/view?usp=drive_link", label: "n8n Automation (WA Autoreply)", image: "imagesportos/Ai7.jpg" },
-                { link: "https://drive.google.com/file/d/1prdMFfWMo8844sfZXS19cLnT2bpR3fbd/view?usp=drive_link", label: "n8n Automation (IG Comments)", image: "imagesportos/Ai8.jpg" },
-                { link: "https://drive.google.com/file/d/1tCu5V0rcZ--yDQZn_6QcO03KoEmPEFhc/view?usp=drive_link", label: "n8n Automation (Email Auto)", image: "imagesportos/Ai9.jpg" },
-                { link: "https://drive.google.com/file/d/15lMazvy_DmKzTpKmS62rVG38N7x33Y54/view?usp=drive_link", label: "Unreal Auto Answer", image: "imagesportos/Ai10.jpg" }
+            "🤖 AI & Automation": [
+                { link: "https://drive.google.com/file/d/1_GN8Y-4-lPUDWumzTTQCuboHg-y78Yec/view?usp=drive_link", label: "AI Character Auto Answer", image: "imagesportos/Ai1.jpg", tag: "LLM Bot", desc: "Sistem chatbot interaktif berbasis AI LLM yang merespons pertanyaan kustom secara mandiri.", impact: "Otomasi customer service 24/7 tanpa agen manusia." },
+                { link: "https://drive.google.com/file/d/1HSY86a1iDhOcxXUhUplb0FCP35BPwx6m/view?usp=drive_link", label: "Voice Call Automation", image: "imagesportos/Ai3.jpg", tag: "Voice AI", desc: "Integrasi sistem panggilan suara berbasis AI untuk interaksi telepon otomatis.", impact: "Mengurangi beban call center untuk pertanyaan repetitif." },
+                { link: "https://drive.google.com/file/d/16W0I5RZeQRIWOVvJPzhX79TfgMiXmCjt/view?usp=drive_link", label: "AI Metahuman Avatar", image: "imagesportos/Ai4.jpg", tag: "Unreal Avatar", desc: "Avatar digital realistis berteknologi Unreal Engine dan LLM untuk resepsionis virtual.", impact: "Menciptakan kesan futuristik pada booth pameran." },
+                { link: "https://drive.google.com/file/d/1WhqbI9dxM1ySseDrc0HQCMnPteJPzEg9/view?usp=drive_link", label: "Metahuman Auto Answer", image: "imagesportos/Ai5.jpg", tag: "Interactive AI", desc: "Avatar interaktif merespons suara pengunjung secara langsung.", impact: "Meningkatkan daya tarik visual dan interaksi pengunjung." },
+                { link: "https://drive.google.com/file/d/1muA9G4GaCviJ7FGHi0Ilxgn0HuTDG6ma/view?usp=drive_link", label: "n8n Auto Posting Social Media", image: "imagesportos/Ai6.jpg", tag: "n8n Workflow", desc: "Otomasi penjadwalan dan pembuatan konten media sosial via webhook.", impact: "Efisiensi tim konten hingga 80%." },
+                { link: "https://drive.google.com/file/d/195oRh3eb5chhsSNCOg4f9PzJl9vWgmfi/view?usp=drive_link", label: "n8n WA Autoreply Bot", image: "imagesportos/Ai7.jpg", tag: "WhatsApp Bot", desc: "Bot WhatsApp pintar terintegrasi spreadsheet dan sistem database.", impact: "Respon cepat leads penjualan masuk." },
+                { link: "https://drive.google.com/file/d/1prdMFfWMo8844sfZXS19cLnT2bpR3fbd/view?usp=drive_link", label: "n8n IG Comments Automation", image: "imagesportos/Ai8.jpg", tag: "Instagram AI", desc: "Auto DM otomatis kepada user yang berkomentar di postingan IG.", impact: "Meningkatkan konversi campaign marketing sosial media." },
+                { link: "https://drive.google.com/file/d/1tCu5V0rcZ--yDQZn_6QcO03KoEmPEFhc/view?usp=drive_link", label: "n8n Email Auto Processing", image: "imagesportos/Ai9.jpg", tag: "Email AI", desc: "Filter dan balasan otomatis email masuk menggunakan AI.", impact: "Manajemen inbox perusahaan menjadi terstruktur." },
+                { link: "https://drive.google.com/file/d/15lMazvy_DmKzTpKmS62rVG38N7x33Y54/view?usp=drive_link", label: "Unreal Engine AI Auto Answer", image: "imagesportos/Ai10.jpg", tag: "Unreal + AI", desc: "Eksperimen render grafis tinggi digabungkan dengan kecerdasan buatan.", impact: "Visual berkualitas tinggi untuk presentasi klien." }
             ],
-            "Videos": [
-                { link: "https://drive.google.com/file/d/1KcabC2-mrJmmZskPt2GCwBr-oMTjkVij/view?usp=drive_link", label: "AI Video (3D)", image: "imagesportos/Vd1.jpg" },
-                { link: "https://drive.google.com/file/d/1Upx2JQYrihvmpTOSi4S42eAXMfpnv6-x/view?usp=sharing", label: "AI Video (Horror)", image: "imagesportos/Vd2.jpg" },
-                { link: "https://drive.google.com/file/d/1D68Mj5EhrtUMUKaTUbnUZadfjm0MuvfQ/view?usp=sharing", label: "Dimsum Emoy", image: "imagesportos/Vd3.jpg" },
-                { link: "https://drive.google.com/file/d/1HXIco76AIt7s5qisztDG0um6anDp4lus/view?usp=sharing", label: "Burdo Emoy", image: "imagesportos/Vd4.jpg" },
-                { link: "https://drive.google.com/file/d/1MOMGf_bp8HtQJY8LK0vrilYP2krOQOqy/view?usp=sharing", label: "Budak Corporate", image: "imagesportos/Vd5.jpg" }
+            "🎮 Interactive & Games": [
+                { link: "https://drive.google.com/file/d/1-jswDEf9WN-fdK1Ecro4iznKeC_wFIKG/view?usp=drive_link", label: "TikTok Live Interactive Game 01", image: "imagesportos/AiTik02.jpg", tag: "Live Streaming AI", desc: "Game interaktif live stream yang digerakkan oleh komentar dan gift penonton TikTok.", impact: "Meroketkan interaksi dan algoritma penonton live." },
+                { link: "https://drive.google.com/file/d/1ZfAcMtvncjJW2nncUky1u2M_JIJv50WP/view?usp=drive_link", label: "TikTok Live Interactive Game 02", image: "imagesportos/AiTik01.jpg", tag: "Live Stream Tech", desc: "Sistem event game live streaming multi-user real-time.", impact: "Monetisasi live stream yang lebih efektif." },
+                { link: "https://drive.google.com/file/d/1Rj8P8ZJOuvp__oSuwZ5LrQVRgDWrXTXw/view?usp=drive_link", label: "TikTok Live Interactive Game 03", image: "imagesportos/AiTik03.jpg", tag: "Live Stream Tech", desc: "Mini-game berbasis web socket untuk interaksi pemirsa.", impact: "Membuat penonton betah berlama-lama di live." },
+                { link: "https://drive.google.com/file/d/1o932k4jLJ7r9W_6ru4ex-XxcD6eD1GGB/view?usp=drive_link", label: "Fanta Interactive Game 2023 A", image: "imagesportos/GM1.jpg", tag: "Brand Game", desc: "Game promosi brand interaktif untuk event offline/online.", impact: "Brand awareness produk meningkat signifikan." },
+                { link: "https://drive.google.com/file/d/1WP4W8XC8nVdi_u_bNqnATgjkr_m5wSlt/view?usp=drive_link", label: "Fanta Interactive Game 2023 B", image: "imagesportos/GM2.jpg", tag: "Brand Game", desc: "Aktivasi gamifikasi untuk campaign produk minuman.", impact: "Pengalaman brand yang menyenangkan bagi konsumen." },
+                { link: "http://demo.gemezz.mobi/", label: "Web Interactive AR Game Demo", image: "", tag: "Web Canvas", desc: "Demo game berbasis web tanpa perlu download aplikasi.", impact: "Aksesibilitas luas langsung dari smartphone." }
             ],
-            "Games": [
-                { link: "https://drive.google.com/file/d/1o932k4jLJ7r9W_6ru4ex-XxcD6eD1GGB/view?usp=drive_link", label: "Fanta 2023", image: "imagesportos/GM1.jpg" },
-                { link: "https://drive.google.com/file/d/1ZfAcMtvncjJW2nncUky1u2M_JIJv50WP/view?usp=drive_link", label: "Tiktok Games Interactive Live Streaming", image: "imagesportos/AiTik01.jpg" },
-                { link: "https://drive.google.com/file/d/1Rj8P8ZJOuvp__oSuwZ5LrQVRgDWrXTXw/view?usp=drive_link", label: "Tiktok Games Interactive Live Streaming", image: "imagesportos/AiTik03.jpg" },
-                { link: "https://drive.google.com/file/d/1WP4W8XC8nVdi_u_bNqnATgjkr_m5wSlt/view?usp=drive_link", label: "Fanta 2023", image: "imagesportos/GM2.jpg" },
-                { link: "http://demo.gemezz.mobi/", label: "AR (WEB) demo", image: "" }
+            "🥽 AR & WebAR": [
+                { link: "https://drive.google.com/file/d/16GgN1IhOMD5FvVWHbUzjATGMvr-VbwXm/view?usp=sharing", label: "WebAR Product Experience 1", image: "imagesportos/WBAR1.jpg", tag: "WebAR Browser", desc: "Menampilkan produk 3D interaktif langsung di kamera browser.", impact: "Membantu keputusan beli konsumen secara virtual." },
+                { link: "https://drive.google.com/file/d/11-GSqUOMumJC3yyjgNzHHla9NyGcznFo/view?usp=sharing", label: "WebAR Product Experience 2", image: "imagesportos/WBAR2.jpg", tag: "WebAR Browser", desc: "Visualisasi AR produk langsung dari web seluler.", impact: "Campaign digital tanpa hambatan instalasi app." },
+                { link: "https://drive.google.com/file/d/10w_ZftnPF3qa51_7TSA83dV3GNng7mM2/view?usp=sharing", label: "WebAR Product Experience 3", image: "imagesportos/WBAR3.jpg", tag: "WebAR Browser", desc: "Fitur try-on produk berbasis WebAR.", impact: "Pengalaman belanja online yang imersif." },
+                { link: "https://drive.google.com/file/d/1Kq9e03GbjNWyclm4SMztl2LUx4uq4Qvb/view?usp=sharing", label: "AR Social Reel Campaign", image: "imagesportos/WBAR4.jpg", tag: "Social AR", desc: "Filter AR sosial media untuk viral marketing.", impact: "Mendorong user-generated content dari audiens." },
+                { link: "https://youtu.be/MrMhzijnTRA", label: "AR Mobile App Demo 1", image: "imagesportos/AR1.jpg", tag: "Mobile AR", desc: "Aplikasi Augmented Reality khusus perangkat mobile.", impact: "Solusi enterprise interaktif tingkat lanjut." },
+                { link: "https://youtu.be/31QC0Mi21ro", label: "AR Mobile App Demo 2", image: "imagesportos/AR2.jpg", tag: "Mobile AR", desc: "Simulasi AR untuk kebutuhan edukasi/pameran.", impact: "Penyampaian informasi produk yang unik." },
+                { link: "https://youtu.be/u4RALBIGmAU", label: "AR Mobile App Demo 3", image: "imagesportos/AR3.jpg", tag: "Mobile AR", desc: "Tracking objek 3D menggunakan kamera.", impact: "Aktivasi offline berteknologi tinggi." },
+                { link: "https://youtu.be/Ijc4VggXUFs", label: "AR Mobile App Demo 4", image: "imagesportos/AR4.jpg", tag: "Mobile AR", desc: "Interaksi karakter virtual dalam dunia nyata.", impact: "Hiburan interaktif berbasis lokasi." },
+                { link: "https://youtu.be/bsNvOzMCeBs", label: "AR Mobile App Demo 5", image: "imagesportos/AR5.jpg", tag: "Mobile AR", desc: "Pengembangan fitur AR kustom berbasis Unity.", impact: "Solusi tailor-made sesuai kebutuhan klien." },
+                { link: "https://drive.google.com/file/d/10Q3Kb_KiX50UL_VbfB1UVSal3PrxAoTG/view?usp=drive_link", label: "AR IG Filter Showcase 1", image: "imagesportos/AR6.jpg", tag: "Instagram Filter", desc: "Filter Instagram interaktif berhadiah/game.", impact: "Amplifikasi brand di sosial media." },
+                { link: "https://drive.google.com/file/d/10_3RVtKcHu9movX80mH9ZmJ_Z6zvnpAv/view?usp=drive_link", label: "AR IG Filter Showcase 2", image: "imagesportos/AR7.jpg", tag: "Instagram Filter", desc: "Filter estetis dan interaktif untuk brand.", impact: "Meningkatkan engagement followers." },
+                { link: "https://drive.google.com/file/d/10buKhm4YcLRV75YURsLXSD6NRTlGcFqw/view?usp=drive_link", label: "AR IG Filter Showcase 3", image: "imagesportos/AR8.jpg", tag: "Instagram Filter", desc: "Filter gamifikasi mini di Instagram Story.", impact: "Viralitas organik yang tinggi." }
             ],
-            "AR": [
-                { link: "https://youtu.be/MrMhzijnTRA", label: "AR (App) YouTube 1", image: "imagesportos/AR1.jpg" },
-                { link: "https://youtu.be/31QC0Mi21ro", label: "AR (App) YouTube 2", image: "imagesportos/AR2.jpg" },
-                { link: "https://youtu.be/u4RALBIGmAU", label: "AR (App) YouTube 3", image: "imagesportos/AR3.jpg" },
-                { link: "https://youtu.be/Ijc4VggXUFs", label: "AR (App) YouTube 4", image: "imagesportos/AR4.jpg" },
-                { link: "https://youtu.be/bsNvOzMCeBs", label: "AR (App) YouTube 5", image: "imagesportos/AR5.jpg" },
-                { link: "https://drive.google.com/file/d/10Q3Kb_KiX50UL_VbfB1UVSal3PrxAoTG/view?usp=drive_link", label: "AR (IG Filter) Drive 1", image: "imagesportos/AR6.jpg" },
-                { link: "https://drive.google.com/file/d/10_3RVtKcHu9movX80mH9ZmJ_Z6zvnpAv/view?usp=drive_link", label: "AR (IG Filter) Drive 2", image: "imagesportos/AR7.jpg" },
-                { link: "https://drive.google.com/file/d/10buKhm4YcLRV75YURsLXSD6NRTlGcFqw/view?usp=drive_link", label: "AR (IG Filter) Drive 3", image: "imagesportos/AR8.jpg" }
+            "⚡ Smart Hardware & IoT": [
+                { link: "https://drive.google.com/file/d/10ozTdc762tjoHoO56rdJf_2TQJ1qRoSN/view?usp=sharing", label: "IOT Hologram + GPT Voice AI", image: "imagesportos/IoT3.jpg", tag: "IoT + Voice AI", desc: "Gabungan perangkat display hologram fisik dengan kecerdasan suara AI.", impact: "Daya tarik utama untuk pameran teknologi tingkat tinggi." },
+                { link: "https://drive.google.com/file/d/1Q3qVnjsbCtl5m4gUTLekm4dhSinnTlgE/view?usp=sharing", label: "Smart Vending Machine System", image: "imagesportos/IoT2.jpg", tag: "Hardware + Web", desc: "Mesin penjual otomatis yang dikendalikan melalui web aplikasi dan QRIS.", impact: "Otomasi penjualan tanpa penjaga fisik." },
+                { link: "https://drive.google.com/file/d/10oxAWz2oeYdrXPn3RbsPLd_hzIAAhTM6/view?usp=sharing", label: "IOT Holo Band Smart Wearable", image: "imagesportos/IoT1.jpg", tag: "Hardware Wearable", desc: "Gelang pintar terintegrasi sistem event interaktif.", impact: "Pengalaman event terpersonalisasi." },
+                { link: "https://drive.google.com/file/d/10u9nzGKGbHuFMDPYFXF_GgWoqlQY5Vyp/view?usp=sharing", label: "IOT Beverage Tap Dispenser", image: "imagesportos/IoT4.jpg", tag: "Smart Dispenser", desc: "Kran minuman pintar otomatis berbasis sensor.", impact: "Higienis dan efisiensi penuangan." },
+                { link: "https://drive.google.com/file/d/11B6noG6mT2O8WIrofzvK6GHg6P3P9egO/view?usp=sharing", label: "IOT Interactive Exhibition Demo", image: "imagesportos/IoT5.jpg", tag: "Hardware Integration", desc: "Integrasi sensor fisik untuk kontrol pameran digital.", impact: "Booth pameran interaktif dan modern." },
+                { link: "https://drive.google.com/file/d/11j08tBynEJmxgQP9EiiIA0XyZ4n6XKyb/view?usp=sharing", label: "IOT VR Glasses Hardware Integration", image: "imagesportos/IoT6.jpg", tag: "VR Hardware", desc: "Koneksi perangkat kacamata VR dengan sistem kontrol pameran.", impact: "Imersi pengunjung pameran maksimal." },
+                { link: "https://drive.google.com/file/d/13ben7HAqK_NKnWurimrIjyo4rhIQbLEh/view?usp=sharing", label: "IOT Automatic License Plate Capturer", image: "imagesportos/IoT7.jpg", tag: "Computer Vision", desc: "Kamera cerdas pembaca pelat nomor otomatis.", impact: "Otomasi sistem parkir / gerbang keamanan." }
             ],
-            "AR (WEB)": [
-                { link: "https://drive.google.com/file/d/16GgN1IhOMD5FvVWHbUzjATGMvr-VbwXm/view?usp=sharing", label: "AR (Web) Drive 1", image: "imagesportos/WBAR1.jpg" },
-                { link: "https://drive.google.com/file/d/11-GSqUOMumJC3yyjgNzHHla9NyGcznFo/view?usp=sharing", label: "AR (Web) Drive 2", image: "imagesportos/WBAR2.jpg" },
-                { link: "https://drive.google.com/file/d/10w_ZftnPF3qa51_7TSA83dV3GNng7mM2/view?usp=sharing", label: "AR (Web) Drive 3", image: "imagesportos/WBAR3.jpg" },
-                { link: "https://drive.google.com/file/d/1Kq9e03GbjNWyclm4SMztl2LUx4uq4Qvb/view?usp=sharing", label: "Instagram Reel", image: "imagesportos/WBAR4.jpg" }
+            "🎬 AI Video & Media": [
+                { link: "https://drive.google.com/file/d/1Z2MvyNP2HPF1Im3Qj_gpuDIHRMUz620j/view?usp=drive_link", label: "AI Generative Video Generator", image: "imagesportos/Ai2.jpg", tag: "GenAI Video", desc: "Pembuatan aset video instan menggunakan generator AI.", impact: "Efisiensi produksi video komersial." },
+                { link: "https://drive.google.com/file/d/1KcabC2-mrJmmZskPt2GCwBr-oMTjkVij/view?usp=drive_link", label: "AI 3D Commercial Video", image: "imagesportos/Vd1.jpg", tag: "3D Animation AI", desc: "Video animasi 3D komersial hasil pipeline AI modern.", impact: "Visual sinematik dengan biaya efisien." },
+                { link: "https://drive.google.com/file/d/1Upx2JQYrihvmpTOSi4S42eAXMfpnv6-x/view?usp=sharing", label: "AI Horror Short Film Visuals", image: "imagesportos/Vd2.jpg", tag: "GenAI Cinematic", desc: "Eksperimen visual film pendek bertema horor dengan AI.", impact: "Showcase kemampuan artistik visual." },
+                { link: "https://drive.google.com/file/d/1D68Mj5EhrtUMUKaTUbnUZadfjm0MuvfQ/view?usp=sharing", label: "Dimsum Emoy Commercial Video", image: "imagesportos/Vd3.jpg", tag: "Video Production", desc: "Produksi video iklan komersial kuliner.", impact: "Meningkatkan selera dan daya tarik produk." },
+                { link: "https://drive.google.com/file/d/1HXIco76AIt7s5qisztDG0um6anDp4lus/view?usp=sharing", label: "Burdo Emoy Commercial Video", image: "imagesportos/Vd4.jpg", tag: "Video Production", desc: "Video komersial produk lokal kreatif.", impact: "Promosi produk yang menghibur." },
+                { link: "https://drive.google.com/file/d/1MOMGf_bp8HtQJY8LK0vrilYP2krOQOqy/view?usp=sharing", label: "Budak Corporate Motion Design", image: "imagesportos/Vd5.jpg", tag: "Motion Graphics", desc: "Desain motion grafis bertema realita korporat.", impact: "Hiburan visual yang relate dengan audiens kerja." }
             ],
-            "METAHUMAN (UNREAL)": [
-                { link: "https://drive.google.com/file/d/1zruCYsHDTJOUPbCOItDKyXrig1VR2FiZ/view?usp=sharing", label: "METAHUMAN (UNREAL)", image: "imagesportos/MtHm.jpg" }
-            ],
-            "VR": [
-                { link: "https://drive.google.com/file/d/1e3xXf2Ji0DL6bsyaZluvAKCvOQw-kmWW/view?usp=sharing", label: "VR TSel", image: "imagesportos/VR1.jpg" },
-                { link: "https://drive.google.com/file/d/16gFgj9Q4BODNnxgntFLnd02g_SOO8B84/view?usp=sharing", label: "VR Demo", image: "imagesportos/VR2.jpg" },
-                { link: "https://drive.google.com/file/d/1Rfph2fQXKw1uzYMAR9KyGCQrhCcjHkr0/view?usp=sharing", label: "VR Demo", image: "imagesportos/VR3.jpg" }
-            ],
-            "IOT": [
-                { link: "https://drive.google.com/file/d/10oxAWz2oeYdrXPn3RbsPLd_hzIAAhTM6/view?usp=sharing", label: "IOT Holo Band", image: "imagesportos/IoT1.jpg" },
-                { link: "https://drive.google.com/file/d/1Q3qVnjsbCtl5m4gUTLekm4dhSinnTlgE/view?usp=sharing", label: "Vending Machine", image: "imagesportos/IoT2.jpg" },
-                { link: "https://drive.google.com/file/d/10ozTdc762tjoHoO56rdJf_2TQJ1qRoSN/view?usp=sharing", label: "IOT Holo GPT", image: "imagesportos/IoT3.jpg" },
-                { link: "https://drive.google.com/file/d/10u9nzGKGbHuFMDPYFXF_GgWoqlQY5Vyp/view?usp=sharing", label: "IOT Beverage Tap", image: "imagesportos/IoT4.jpg" },
-                { link: "https://drive.google.com/file/d/11B6noG6mT2O8WIrofzvK6GHg6P3P9egO/view?usp=sharing", label: "IOT Demo", image: "imagesportos/IoT5.jpg" },
-                { link: "https://drive.google.com/file/d/11j08tBynEJmxgQP9EiiIA0XyZ4n6XKyb/view?usp=sharing", label: "IOT VR Glasses", image: "imagesportos/IoT6.jpg" },
-                { link: "https://drive.google.com/file/d/13ben7HAqK_NKnWurimrIjyo4rhIQbLEh/view?usp=sharing", label: "IOT Plate Number Capturer", image: "imagesportos/IoT7.jpg" }
+            "🌌 VR & Metahuman": [
+                { link: "https://drive.google.com/file/d/1zruCYsHDTJOUPbCOItDKyXrig1VR2FiZ/view?usp=sharing", label: "Unreal Metahuman High-Fidelity Showcase", image: "imagesportos/MtHm.jpg", tag: "Metahuman CGI", desc: "Demonstrasi render karakter digital tingkat tinggi.", impact: "Standar visual setara industri game profesional." },
+                { link: "https://drive.google.com/file/d/1e3xXf2Ji0DL6bsyaZluvAKCvOQw-kmWW/view?usp=sharing", label: "Telkomsel VR Immersive Simulation", image: "imagesportos/VR1.jpg", tag: "Virtual Reality", desc: "Simulasi dunia virtual 3D untuk instansi telekomunikasi.", impact: "Pengalaman pameran virtual tanpa batas ruang." },
+                { link: "https://drive.google.com/file/d/16gFgj9Q4BODNnxgntFLnd02g_SOO8B84/view?usp=sharing", label: "VR Environment Demo 01", image: "imagesportos/VR2.jpg", tag: "Virtual Reality", desc: "Pengembangan lingkungan 3D imersif.", impact: "Eksplorasi spasial interaktif." },
+                { link: "https://drive.google.com/file/d/1Rfph2fQXKw1uzYMAR9KyGCQrhCcjHkr0/view?usp=sharing", label: "VR Environment Demo 02", image: "imagesportos/VR3.jpg", tag: "Virtual Reality", desc: "Dunia virtual interaktif untuk kacamata VR.", impact: "Media pelatihan dan simulasi masa depan." }
             ]
         };
 
+        let activeCategory = 'All';
+        let searchQuery = '';
+        let currentPage = 1;
+        const itemsPerPage = 8;
+
         const overlay = document.getElementById('video-overlay');
         const videoContainer = document.getElementById('video-container');
-        const audioBtn = document.getElementById('safari-audio-btn');
+        const videoLoader = document.getElementById('video-loader');
         const sourceLink = document.getElementById('source-link');
         const popupTitle = document.getElementById('popup-title');
+        const popupCategory = document.getElementById('popup-category');
+        const modalDesc = document.getElementById('modal-desc');
+        const modalTags = document.getElementById('modal-tags');
+        const modalImpact = document.getElementById('modal-impact');
 
         function getYouTubeVideoId(url) {
             const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i;
@@ -232,124 +466,533 @@
             return (match && match[1]) ? match[1] : null;
         }
 
-        function createContentElement(item) {
-          const card = document.createElement('div');
-          card.className = "glass p-4 rounded-2xl shadow-lg hover:scale-105 transform transition duration-300 flex flex-col";
-
-          const thumb = document.createElement('div');
-          thumb.className = "thumbnail-container w-full h-48 rounded-lg mb-4 relative overflow-hidden";
-
-          thumb.innerHTML = `
-            <img 
-              src="${item.image || 'https://via.placeholder.com/400x225?text=No+Image'}" 
-              alt="${item.label}"
-              class="w-full h-full object-cover"
-              onerror="this.src='https://via.placeholder.com/400x225?text=Portofolio'"
-            />
-            <div class="absolute inset-0 bg-gradient-to-tr from-blue-900/30 to-purple-900/30"></div>
-            <div class="play-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24" fill="white">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-            </div>
-          `;
-
-          thumb.onclick = () => openOverlay(item);
-
-          const title = document.createElement('h2');
-          title.className = "text-lg font-semibold mb-2";
-          title.textContent = item.label;
-
-          card.appendChild(thumb);
-          card.appendChild(title);
-          return card;
+        function formatDriveEmbedLink(url) {
+            if (!url.includes('drive.google.com')) return url;
+            let cleanUrl = url.split('?')[0]; 
+            if (cleanUrl.endsWith('/view')) {
+                cleanUrl = cleanUrl.replace(/\/view$/, '/preview');
+            } else if (!cleanUrl.endsWith('/preview')) {
+                cleanUrl = cleanUrl + '/preview';
+            }
+            return cleanUrl;
         }
 
-        function openOverlay(item) {
+        function countProjects(catKey) {
+            if (catKey === 'All') {
+                return Object.values(contentData).reduce((acc, curr) => acc + curr.length, 0);
+            }
+            return contentData[catKey] ? contentData[catKey].length : 0;
+        }
+
+        function renderFilterButtons() {
+            const filterBar = document.getElementById('filter-bar');
+            filterBar.innerHTML = '';
+            const categories = ['All', ...Object.keys(contentData)];
+
+            categories.forEach(cat => {
+                const count = countProjects(cat);
+                const btn = document.createElement('button');
+                const isActive = (activeCategory === cat);
+                
+                btn.className = isActive
+                    ? "px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-500 flex items-center gap-2 whitespace-nowrap transition"
+                    : "px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-semibold bg-dark-card text-gray-400 border border-dark-border hover:border-gray-700 hover:text-gray-200 transition whitespace-nowrap flex items-center gap-2";
+
+                btn.innerHTML = `
+                    <span>${cat === 'All' ? 'Semua Karya' : cat}</span>
+                    <span class="px-1.5 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-dark-hover text-gray-400'} text-[10px] font-mono">${count}</span>
+                `;
+
+                btn.onclick = () => {
+                    activeCategory = cat;
+                    currentPage = 1;
+                    renderFilterButtons();
+                    renderProjects();
+                };
+                filterBar.appendChild(btn);
+            });
+        }
+
+        function createCardElement(item, catName) {
+            const card = document.createElement('div');
+            card.className = "group bg-dark-card border border-dark-border rounded-2xl overflow-hidden card-shadow hover:border-blue-500/50 transition duration-300 flex flex-col cursor-pointer";
+
+            card.innerHTML = `
+                <div class="relative w-full aspect-video bg-gray-900 overflow-hidden">
+                    <img src="${item.image || 'https://via.placeholder.com/400x225?text=No+Image'}" alt="${item.label}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 group-hover:opacity-100" onerror="this.src='https://via.placeholder.com/400x225?text=Portofolio'"/>
+                    <div class="absolute inset-0 bg-gradient-to-t from-dark-card via-transparent to-transparent opacity-80"></div>
+                    <span class="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-blue-300 text-[9px] sm:text-[10px] font-bold tracking-wider uppercase">${item.tag || catName}</span>
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 bg-black/40">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/50 transform scale-75 group-hover:scale-100 transition duration-300">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-3 sm:p-4 flex flex-col flex-grow justify-between">
+                    <div>
+                        <h3 class="text-xs sm:text-sm font-bold text-white group-hover:text-blue-400 transition line-clamp-2 leading-snug">${item.label}</h3>
+                    </div>
+                    <div class="mt-3 pt-2.5 border-t border-dark-border/60 flex items-center justify-between text-[11px] text-gray-500">
+                        <span class="font-medium text-gray-400 truncate max-w-[70%]">Detail & Auto-Play</span>
+                        <span class="text-blue-400 font-semibold group-hover:underline flex-shrink-0">Preview &rarr;</span>
+                    </div>
+                </div>
+            `;
+            card.onclick = () => openOverlay(item, catName);
+            return card;
+        }
+
+        function getFilteredProjects() {
+            let list = [];
+            for (const category in contentData) {
+                if (activeCategory !== 'All' && activeCategory !== category) continue;
+                contentData[category].forEach(item => {
+                    const matchSearch = searchQuery === '' || 
+                        item.label.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (item.tag && item.tag.toLowerCase().includes(searchQuery.toLowerCase()));
+
+                    if (matchSearch) list.push({ ...item, categoryName: category });
+                });
+            }
+            return list;
+        }
+
+        function renderProjects() {
+            const grid = document.getElementById('content-grid');
+            const emptyState = document.getElementById('empty-state');
+            const totalCountEl = document.getElementById('total-count');
+            grid.innerHTML = '';
+
+            const filteredList = getFilteredProjects();
+            const totalItems = filteredList.length;
+            totalCountEl.textContent = totalItems;
+
+            if (totalItems === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                document.getElementById('pagination-container').classList.add('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+                document.getElementById('pagination-container').classList.remove('hidden');
+            }
+
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const paginatedItems = filteredList.slice(startIndex, endIndex);
+
+            paginatedItems.forEach(item => {
+                grid.appendChild(createCardElement(item, item.categoryName));
+            });
+
+            renderPaginationControls(totalItems, totalPages, startIndex + 1, endIndex);
+        }
+
+        function renderPaginationControls(totalItems, totalPages, startItem, endItem) {
+            const infoEl = document.getElementById('pagination-info');
+            const buttonsEl = document.getElementById('pagination-buttons');
+            infoEl.textContent = `Menampilkan ${startItem}-${endItem} dari ${totalItems} karya`;
+            buttonsEl.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${currentPage === 1 ? 'bg-dark-card text-gray-600 border-dark-border cursor-not-allowed' : 'bg-dark-card text-gray-300 border-dark-border hover:border-blue-500 hover:text-white'}`;
+            prevBtn.textContent = '← Prev';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderProjects(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
+            buttonsEl.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const numBtn = document.createElement('button');
+                const isCurrent = (i === currentPage);
+                numBtn.className = `w-8 h-8 rounded-lg text-xs font-semibold transition border ${isCurrent ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/30' : 'bg-dark-card text-gray-400 border-dark-border hover:border-gray-600 hover:text-white'}`;
+                numBtn.textContent = i;
+                numBtn.onclick = () => { currentPage = i; renderProjects(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+                buttonsEl.appendChild(numBtn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${currentPage === totalPages ? 'bg-dark-card text-gray-600 border-dark-border cursor-not-allowed' : 'bg-dark-card text-gray-300 border-dark-border hover:border-blue-500 hover:text-white'}`;
+            nextBtn.textContent = 'Next →';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderProjects(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
+            buttonsEl.appendChild(nextBtn);
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('search-input').value.trim();
+            currentPage = 1;
+            renderProjects();
+        }
+
+        function getGoogleDriveId(url) {
+            if (!url.includes('drive.google.com')) return null;
+            const match = url.match(/(?:file\/d\/|id=)([a-zA-Z0-9_-]+)/);
+            return match ? match[1] : null;
+        }
+
+        // ---------------------------------------------------------------------------
+        // Player native untuk video Google Drive.
+        // Video di-stream lewat drive-proxy.php (same-origin), sehingga:
+        //  - playback bisa dipicu dari halaman ini (tidak lagi bergantung pada tombol
+        //    play milik iframe Google Drive yang sering tidak responsif di mobile)
+        //  - control bar milik kita sendiri dan posisinya DI BAWAH gambar video,
+        //    jadi progress bar tidak mungkin menutupi video
+        // Kalau proxy tidak bisa dipakai (mis. hosting statis tanpa PHP), onError
+        // dipanggil supaya openOverlay() kembali ke embed resmi Drive.
+        // ---------------------------------------------------------------------------
+        function dpFormatTime(sec) {
+            if (!isFinite(sec) || sec < 0) sec = 0;
+            return Math.floor(sec / 60) + ':' + String(Math.floor(sec % 60)).padStart(2, '0');
+        }
+
+        function createDrivePlayer(item, driveId, onError) {
+            const shell = document.createElement('div');
+            shell.className = 'dp-shell';
+            shell.innerHTML =
+                '<div class="dp-stage">' +
+                    '<button type="button" class="dp-bigplay" aria-label="Putar video">' +
+                        '<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>' +
+                    '</button>' +
+                '</div>' +
+                '<div class="dp-bar">' +
+                    '<button type="button" class="dp-btn dp-play-toggle" aria-label="Play / Pause">' +
+                        '<svg class="w-5 h-5 fill-current dp-ico-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>' +
+                    '</button>' +
+                    '<input type="range" class="dp-seek" min="0" max="1000" step="1" value="0" aria-label="Progress video">' +
+                    '<span class="dp-time">0:00 / 0:00</span>' +
+                    '<button type="button" class="dp-btn dp-mute" aria-label="Bisukan / nyalakan suara">' +
+                        '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M3 10v4h3l4 4V6l-4 4H3z"/></svg>' +
+                    '</button>' +
+                    '<button type="button" class="dp-btn dp-fs" aria-label="Layar penuh">' +
+                        '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>' +
+                    '</button>' +
+                '</div>';
+
+            const stage = shell.querySelector('.dp-stage');
+            const seek = shell.querySelector('.dp-seek');
+            const timeLabel = shell.querySelector('.dp-time');
+            const playToggle = shell.querySelector('.dp-play-toggle');
+
+            const video = document.createElement('video');
+            video.className = 'dp-video';
+            video.id = 'active-player-video';
+            video.preload = 'metadata';
+            video.playsInline = true;
+            video.setAttribute('playsinline', '');
+            video.setAttribute('webkit-playsinline', '');
+            video.poster = item.image || '';
+            video.src = 'drive-proxy.php?id=' + encodeURIComponent(driveId);
+            stage.appendChild(video);
+
+            let scrubbing = false;
+
+            const syncIcon = () => {
+                playToggle.innerHTML = video.paused
+                    ? '<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
+                    : '<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+            };
+            const syncTime = () => {
+                const dur = isFinite(video.duration) ? video.duration : 0;
+                timeLabel.textContent = dpFormatTime(video.currentTime) + ' / ' + dpFormatTime(dur);
+                if (!scrubbing && dur > 0) {
+                    seek.value = String(Math.round((video.currentTime / dur) * 1000));
+                }
+            };
+
+            video.addEventListener('loadedmetadata', () => {
+                showVideoContent();
+                syncTime();
+                syncIcon();
+            });
+            video.addEventListener('loadeddata', () => showVideoContent());
+            video.addEventListener('timeupdate', () => { if (!scrubbing) syncTime(); });
+            video.addEventListener('play', () => {
+                shell.classList.add('is-playing');
+                hideSummary();
+                syncIcon();
+            });
+            video.addEventListener('pause', () => {
+                shell.classList.remove('is-playing');
+                syncIcon();
+            });
+            video.addEventListener('ended', () => {
+                shell.classList.remove('is-playing');
+                showSummary();
+                syncIcon();
+            });
+            video.addEventListener('waiting', () => { videoLoader.style.display = ''; });
+            video.addEventListener('playing', () => showVideoContent());
+            video.addEventListener('error', () => {
+                // Jangan fallback kalau videonya sudah dilepas dari DOM (overlay ditutup),
+                // supaya iframe Drive tidak muncul lagi setelah modal ditutup.
+                if (!shell.isConnected) return;
+                if (typeof onError === 'function') onError();
+            });
+
+            const doPlay = () => {
+                const p = video.play();
+                if (p && typeof p.catch === 'function') p.catch(() => {});
+            };
+
+            shell.querySelector('.dp-bigplay').addEventListener('click', doPlay);
+            stage.addEventListener('click', (e) => {
+                // Jangan tangani ulang tap yang berasal dari tombol play besar
+                // (kalau tidak, play() lalu langsung di-pause oleh handler ini).
+                if (e.target.closest('.dp-bigplay')) return;
+                if (video.paused) { doPlay(); } else { video.pause(); }
+            });
+            playToggle.addEventListener('click', () => {
+                if (video.paused) { doPlay(); } else { video.pause(); }
+            });
+
+            const seekTo = () => {
+                const dur = isFinite(video.duration) ? video.duration : 0;
+                if (dur > 0) {
+                    video.currentTime = (Number(seek.value) / 1000) * dur;
+                    syncTime();
+                }
+            };
+            seek.addEventListener('pointerdown', () => { scrubbing = true; });
+            seek.addEventListener('input', () => {
+                scrubbing = true;
+                const dur = isFinite(video.duration) ? video.duration : 0;
+                timeLabel.textContent = dpFormatTime((Number(seek.value) / 1000) * dur) + ' / ' + dpFormatTime(dur);
+            });
+            seek.addEventListener('change', () => { seekTo(); scrubbing = false; });
+            seek.addEventListener('pointerup', () => { seekTo(); scrubbing = false; });
+
+            shell.querySelector('.dp-mute').addEventListener('click', (e) => {
+                video.muted = !video.muted;
+                e.currentTarget.style.opacity = video.muted ? '0.45' : '1';
+            });
+
+            shell.querySelector('.dp-fs').addEventListener('click', () => {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else if (shell.requestFullscreen) {
+                    shell.requestFullscreen().catch(() => {});
+                } else if (video.webkitEnterFullscreen) {
+                    video.webkitEnterFullscreen();
+                }
+            });
+
+            shell.playVideo = doPlay;
+            shell.getVideo = () => video;
+            return shell;
+        }
+
+        let loaderFallbackTimer = null;
+
+        function showVideoContent() {
+            if (loaderFallbackTimer) { clearTimeout(loaderFallbackTimer); loaderFallbackTimer = null; }
+            videoLoader.style.display = 'none';
+        }
+
+        function hideSummary() {
+            const summary = document.getElementById('summary-overlay');
+            if (summary) {
+                summary.style.display = 'none';
+            }
+            // Tombol ringkasan ada di header modal (bukan lagi pill di atas video,
+            // karena pill tersebut menutupi control bar player dan menahan tap).
+            const label = document.getElementById('toggle-summary-text');
+            if (label) label.textContent = 'Sembunyikan';
+        }
+
+        function showSummary() {
+            const summary = document.getElementById('summary-overlay');
+            if (summary) {
+                summary.style.display = 'flex';
+            }
+            const label = document.getElementById('toggle-summary-text');
+            if (label) label.textContent = 'Ringkasan';
+        }
+
+        function toggleSummary() {
+            const summary = document.getElementById('summary-overlay');
+            if (summary && summary.style.display === 'none') {
+                showSummary();
+            } else {
+                hideSummary();
+            }
+        }
+
+        function startPlayVideo() {
+            hideSummary();
+            // Video native (Drive lewat proxy / mp4): playback bisa dipicu langsung.
+            const nativeVideo = videoContainer.querySelector('video');
+            if (nativeVideo) {
+                const shell = videoContainer.querySelector('.dp-shell');
+                if (shell && typeof shell.playVideo === 'function') {
+                    shell.playVideo();
+                } else {
+                    const playPromise = nativeVideo.play();
+                    if (playPromise && typeof playPromise.catch === 'function') playPromise.catch(() => {});
+                }
+                return;
+            }
+            const iframe = videoContainer.querySelector('iframe');
+            if (iframe && iframe.src.includes('youtube.com')) {
+                if (!iframe.src.includes('autoplay=1')) {
+                    iframe.src += (iframe.src.includes('?') ? '&' : '?') + 'autoplay=1';
+                }
+                try {
+                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                } catch (e) {}
+                return;
+            }
+            // Player Google Drive berjalan di dalam iframe cross-origin: playback tidak bisa
+            // dipicu dari halaman ini. Beri petunjuk visual supaya user menekan play di player.
+            if (iframe && iframe.src.includes('drive.google.com')) {
+                hintTapToPlay();
+            }
+        }
+
+        let tapHintTimer = null;
+        function hintTapToPlay() {
+            const wrap = document.getElementById('modal-video-wrapper');
+            if (!wrap) return;
+            wrap.classList.remove('tap-hint');
+            void wrap.offsetWidth; // paksa reflow agar animasi bisa diputar ulang
+            wrap.classList.add('tap-hint');
+            if (tapHintTimer) clearTimeout(tapHintTimer);
+            tapHintTimer = setTimeout(() => wrap.classList.remove('tap-hint'), 2400);
+        }
+
+        function openOverlay(item, catName) {
             videoContainer.innerHTML = '';
-            overlay.style.display = 'flex';
-            audioBtn.classList.add('hidden');
+            videoLoader.style.display = '';
+            showSummary();
+
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
             document.body.style.overflow = 'hidden';
             
-            // Set judul dan link sumber
             popupTitle.textContent = item.label;
+            popupCategory.textContent = item.tag ? `${catName} • ${item.tag}` : catName;
             sourceLink.href = item.link;
 
+            modalDesc.textContent = item.desc || "Sistem interaktif terintegrasi untuk kebutuhan digital campaign dan automasi.";
+            modalImpact.textContent = item.impact || "Meningkatkan efisiensi dan pengalaman interaktif audiens.";
+            
+            modalTags.innerHTML = '';
+            const tags = [item.tag || catName, "End-to-End System", "Interactive Tech"];
+            tags.forEach(t => {
+                const span = document.createElement('span');
+                span.className = "px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg text-[10px] font-semibold";
+                span.textContent = t;
+                modalTags.appendChild(span);
+            });
+
+            const driveId = getGoogleDriveId(item.link);
             const youTubeId = getYouTubeVideoId(item.link);
             const isMp4 = item.link.toLowerCase().endsWith('.mp4');
-            const isDriveFile = item.link.includes('drive.google.com/file/');
 
-            if (youTubeId) {
+            const playBtn = document.getElementById('summary-play-btn');
+            if (playBtn) {
+                if (driveId || youTubeId || isMp4) {
+                    playBtn.innerHTML = `
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        <span>PUTAR VIDEO SEKARANG</span>
+                    `;
+                    playBtn.onclick = () => startPlayVideo();
+                } else {
+                    playBtn.innerHTML = `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        <span>BUKA LINK KARYA</span>
+                    `;
+                    playBtn.onclick = () => window.open(item.link, '_blank');
+                }
+            }
+
+            // Fallback: sembunyikan loader setelah 1.5 detik
+            if (loaderFallbackTimer) clearTimeout(loaderFallbackTimer);
+            loaderFallbackTimer = setTimeout(() => showVideoContent(), 1500);
+
+            if (driveId) {
+                // Video Google Drive diputar dengan <video> native via drive-proxy.php
+                // (same-origin). Kalau proxy tidak tersedia / Drive menolak, fallback ke
+                // embed resmi Drive supaya video tetap bisa ditonton.
+                const player = createDrivePlayer(item, driveId, () => {
+                    videoContainer.innerHTML = '';
+                    const iframe = document.createElement('iframe');
+                    iframe.className = "drive-embed-iframe";
+                    iframe.src = formatDriveEmbedLink(item.link);
+                    iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+                    iframe.setAttribute('allowfullscreen', '');
+                    iframe.onload = () => showVideoContent();
+                    videoContainer.appendChild(iframe);
+                });
+                videoContainer.appendChild(player);
+            } else if (youTubeId) {
                 const iframe = document.createElement('iframe');
-                iframe.className = "w-full h-full";
-                iframe.src = `https://www.youtube.com/embed/${youTubeId}?autoplay=1&mute=0&rel=0`;
-                iframe.setAttribute("allow", "autoplay; encrypted-media");
+                iframe.style.cssText = "width:100%;height:100%;border:none;display:block;";
+                iframe.src = `https://www.youtube.com/embed/${youTubeId}?enablejsapi=1&autoplay=1&mute=0&rel=0`;
+                iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
                 iframe.setAttribute("allowfullscreen", "");
+                iframe.onload = () => showVideoContent();
                 videoContainer.appendChild(iframe);
             } else if (isMp4) {
                 const video = document.createElement('video');
-                video.id = "main-video";
+                video.id = "active-player-video";
                 video.className = "w-full h-full object-contain";
                 video.src = item.link;
                 video.controls = true;
                 video.autoplay = true;
+                video.playsInline = true;
+                video.setAttribute('playsinline', '');
+                video.poster = item.image || '';
+                video.onplay = () => hideSummary();
+                video.onended = () => showSummary();
+                video.onloadeddata = () => showVideoContent();
+                video.onerror = () => showVideoContent();
                 videoContainer.appendChild(video);
-
-                video.play().catch(() => {
-                    audioBtn.classList.remove('hidden');
-                });
-            } else if (isDriveFile) {
-                const driveEmbedUrl = item.link.replace('/view?usp=drive_link', '/preview').replace('/view?usp=sharing', '/preview');
-                const iframe = document.createElement('iframe');
-                iframe.className = "w-full h-full";
-                iframe.src = driveEmbedUrl;
-                iframe.setAttribute("allow", "autoplay");
-                videoContainer.appendChild(iframe);
             } else {
-                // Fallback jika bukan video tapi link biasa
+                showVideoContent();
                 videoContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full text-gray-500 bg-gray-100 p-8">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mb-4 opacity-20"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                        <p class="text-center">Pratinjau tidak tersedia untuk format ini.</p>
-                        <a href="${item.link}" target="_blank" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg font-bold">Buka Secara Manual</a>
+                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;" class="text-gray-400 bg-dark-bg p-6 text-center">
+                        <p class="text-xs sm:text-sm">Pratinjau langsung tidak tersedia untuk format ini.</p>
+                        <a href="${item.link}" target="_blank" class="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition">Buka Link Secara Manual</a>
                     </div>
                 `;
             }
         }
 
         function closeOverlay() {
-            overlay.style.display = 'none';
+            if (loaderFallbackTimer) { clearTimeout(loaderFallbackTimer); loaderFallbackTimer = null; }
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+            const vid = document.getElementById('active-player-video');
+            if (vid) {
+                vid.pause();
+                vid.src = '';
+            }
             videoContainer.innerHTML = '';
+            showSummary();
+            videoLoader.style.display = '';
             document.body.style.overflow = 'auto';
         }
 
-        function enableAudio() {
-            const video = document.getElementById('main-video');
-            if (video) {
-                video.muted = false;
-                video.play();
-                audioBtn.classList.add('hidden');
-            }
+        function handleOverlayClick(e) {
+            if (e.target === overlay) closeOverlay();
         }
 
-        window.onload = function() {
-            const contentGrid = document.getElementById('content-grid');
-            for (const category in contentData) {
-                const categoryTitle = document.createElement('h2');
-                categoryTitle.className = "col-span-full text-2xl font-bold mt-8 mb-4 drop-shadow-md";
-                categoryTitle.textContent = category;
-                contentGrid.appendChild(categoryTitle);
-
-                contentData[category].forEach(item => {
-                    const contentElement = createContentElement(item);
-                    contentGrid.appendChild(contentElement);
-                });
-            }
-        };
-
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) closeOverlay();
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeOverlay();
         });
+
+        window.onload = function() {
+            renderFilterButtons();
+            renderProjects();
+        };
     </script>
 </body>
 </html>
